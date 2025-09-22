@@ -48,7 +48,7 @@ SubTrack is an enterprise-grade subscription management and analytics platform t
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/subtrack.git
+git clone https://github.com/angelaqaaa/subtrack.git
 cd subtrack
 ```
 
@@ -274,8 +274,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙋‍♂️ Support
 
 For questions, issues, or contributions:
-- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/subtrack/issues)
-- **Documentation**: Check `TESTING_GUIDE.md` for troubleshooting
+- **GitHub Issues**: [Report bugs or request features](https://github.com/angelaqaaa/subtrack/issues)
 - **Security Issues**: Please report privately via email
 
 ---
