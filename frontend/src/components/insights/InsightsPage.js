@@ -113,10 +113,22 @@ const InsightsPage = () => {
     const monthlyTrend = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthAnchor = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStart = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth(), 1);
+      const monthEnd = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 0);
+
       const monthSubs = activeSubscriptions.filter(sub => {
-        const startDate = new Date(sub.start_date + 'T00:00:00');
-        return startDate <= date;
+        const startDate = parseISO(`${sub.start_date}T00:00:00`);
+        const endDate = sub.end_date ? parseISO(`${sub.end_date}T23:59:59`) : null;
+
+        if (Number.isNaN(startDate.getTime())) {
+          return false;
+        }
+
+        const startedBeforeMonthEnds = startDate <= monthEnd;
+        const stillActiveDuringMonth = !endDate || (!Number.isNaN(endDate.getTime()) && endDate >= monthStart);
+
+        return startedBeforeMonthEnds && stillActiveDuringMonth;
       });
 
       const monthlyTotal = monthSubs.reduce((total, sub) => {
@@ -125,21 +137,19 @@ const InsightsPage = () => {
           monthlyCost = parseFloat(sub.cost);
         } else {
           // For annual subscriptions, only count the full cost in the month it was paid
-          const subStartDate = parseISO(sub.start_date + 'T00:00:00');
-          const subMonth = subStartDate.getMonth();
-          const subYear = subStartDate.getFullYear();
+          const subStartDate = parseISO(`${sub.start_date}T00:00:00`);
+          const isStartMonth =
+            !Number.isNaN(subStartDate.getTime()) &&
+            subStartDate.getMonth() === monthStart.getMonth() &&
+            subStartDate.getFullYear() === monthStart.getFullYear();
 
-          if (date.getMonth() === subMonth && date.getFullYear() === subYear) {
-            monthlyCost = parseFloat(sub.cost);
-          } else {
-            monthlyCost = 0;
-          }
+          monthlyCost = isStartMonth ? parseFloat(sub.cost) : 0;
         }
-        return total + monthlyCost;
+        return total + (Number.isFinite(monthlyCost) ? monthlyCost : 0);
       }, 0);
 
       monthlyTrend.push({
-        month: date.toLocaleDateString('en', { month: 'short', year: 'numeric' }),
+        month: monthStart.toLocaleDateString('en', { month: 'short', year: 'numeric' }),
         amount: monthlyTotal
       });
     }

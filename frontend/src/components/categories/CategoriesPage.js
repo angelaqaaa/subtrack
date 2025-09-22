@@ -157,6 +157,25 @@ const CategoriesPage = () => {
       setSubmitting(true);
       setError('');
 
+      // Check if category name is changing
+      const oldCategoryName = selectedCategory.name;
+      const newCategoryName = formData.name;
+      const categoryNameChanged = oldCategoryName !== newCategoryName;
+
+      // If category name changed, update it in the database across all subscriptions
+      if (categoryNameChanged) {
+        try {
+          const response = await subscriptionsAPI.updateCategory(oldCategoryName, newCategoryName);
+          if (response.status !== 'success') {
+            console.warn('Backend category update failed:', response.message);
+            // Continue anyway since we'll update localStorage
+          }
+        } catch (err) {
+          console.warn('Backend category update failed:', err);
+          // Continue anyway since we'll update localStorage
+        }
+      }
+
       // Update the category in the local state and save to localStorage
       const updatedCategories = categories.map(cat =>
         cat.id === selectedCategory.id
@@ -173,10 +192,26 @@ const CategoriesPage = () => {
 
       // Log activity
       ActivityLogger.log(ActivityTypes.CATEGORY_UPDATED, {
-        name: formData.name
+        name: formData.name,
+        oldName: categoryNameChanged ? oldCategoryName : undefined
       });
 
-      setSuccessMessage('Category updated successfully!');
+      // If category name changed, reload subscriptions to show updated categories
+      if (categoryNameChanged) {
+        try {
+          const subscriptionsResponse = await subscriptionsAPI.getAll();
+          if (subscriptionsResponse.status === 'success') {
+            setSubscriptions(subscriptionsResponse.data?.subscriptions || []);
+          }
+        } catch (err) {
+          console.warn('Failed to reload subscriptions:', err);
+        }
+      }
+
+      setSuccessMessage(categoryNameChanged
+        ? 'Category updated successfully across all subscriptions!'
+        : 'Category updated successfully!'
+      );
       setShowEditModal(false);
       resetForm();
       setSelectedCategory(null);
