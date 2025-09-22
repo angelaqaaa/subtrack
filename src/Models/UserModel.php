@@ -14,13 +14,15 @@ class UserModel {
         $sql = "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)";
 
         if($stmt = $this->pdo->prepare($sql)) {
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
             $stmt->bindParam(1, $username, PDO::PARAM_STR);
             $stmt->bindParam(2, $email, PDO::PARAM_STR);
             $stmt->bindParam(3, $password_hash, PDO::PARAM_STR);
 
-            $password_hash = password_hash($password, PASSWORD_DEFAULT);
-
-            return $stmt->execute();
+            if ($stmt->execute()) {
+                return $this->pdo->lastInsertId();
+            }
         }
 
         return false;
@@ -30,7 +32,7 @@ class UserModel {
      * Authenticate user login
      */
     public function authenticateUser($username, $password) {
-        $sql = "SELECT id, username, password_hash FROM users WHERE username = ?";
+        $sql = "SELECT id, username, email, password_hash FROM users WHERE username = ?";
 
         if($stmt = $this->pdo->prepare($sql)) {
             $stmt->bindParam(1, $username, PDO::PARAM_STR);
@@ -41,7 +43,8 @@ class UserModel {
                     if(password_verify($password, $row["password_hash"])) {
                         return [
                             'id' => $row['id'],
-                            'username' => $row['username']
+                            'username' => $row['username'],
+                            'email' => $row['email']
                         ];
                     }
                 }
