@@ -5,7 +5,7 @@
 
 // Set JSON response headers and enable CORS
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:3003');
+header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key');
 header('Access-Control-Allow-Credentials: true');
@@ -120,9 +120,23 @@ try {
             $space_id = $input['space_id'] ?? null;
             $email = trim($input['email'] ?? '');
             $role = trim($input['role'] ?? 'viewer');
+            $allowed_roles = ['admin', 'editor', 'viewer'];
 
             if (!$space_id || empty($email)) {
                 sendResponse('error', 'Space ID and email are required', null, 400);
+            }
+
+            if (!in_array($role, $allowed_roles, true)) {
+                sendResponse('error', 'Invalid role specified for invitation', null, 400);
+            }
+
+            if ($role === 'editor' && !$spaceModel->ensureEditorRoleSupport()) {
+                sendResponse(
+                    'error',
+                    'Editor role is not available. Please ensure the latest database migrations have been applied.',
+                    null,
+                    500
+                );
             }
 
             // Check if user has permission to invite (admin only)
@@ -144,6 +158,14 @@ try {
                     sendResponse('error', 'User is already a member of this space', null, 400);
                 } else if ($status === 'pending') {
                     sendResponse('error', 'User already has a pending invitation to this space', null, 400);
+                } else if ($status === 'declined') {
+                    $resent = $spaceModel->reinviteUser($space_id, $invitee['id'], $role, $user_id);
+
+                    if ($resent) {
+                        sendResponse('success', 'Invitation resent successfully');
+                    } else {
+                        sendResponse('error', 'Failed to resend invitation for this user', null, 500);
+                    }
                 }
             }
 
@@ -152,7 +174,11 @@ try {
             if ($success) {
                 sendResponse('success', 'User invited successfully');
             } else {
-                sendResponse('error', 'Failed to invite user', null, 500);
+                $errorMessage = 'Failed to invite user';
+                if ($role === 'editor' && !$spaceModel->supportsEditorRole()) {
+                    $errorMessage = 'Failed to invite user because the editor role is not supported by the database schema.';
+                }
+                sendResponse('error', $errorMessage, null, 500);
             }
             break;
 
@@ -383,13 +409,23 @@ try {
             $space_id = $input['space_id'] ?? null;
             $member_id = $input['member_id'] ?? null;
             $new_role = $input['new_role'] ?? null;
+            $allowed_roles = ['admin', 'editor', 'viewer'];
 
             if (!$space_id || !$member_id || !$new_role) {
                 sendResponse('error', 'Space ID, member ID, and new role are required', null, 400);
             }
 
-            if (!in_array($new_role, ['admin', 'editor', 'viewer'])) {
+            if (!in_array($new_role, $allowed_roles, true)) {
                 sendResponse('error', 'Invalid role. Must be admin, editor, or viewer', null, 400);
+            }
+
+            if ($new_role === 'editor' && !$spaceModel->ensureEditorRoleSupport()) {
+                sendResponse(
+                    'error',
+                    'Editor role is not available. Please ensure the latest database migrations have been applied.',
+                    null,
+                    500
+                );
             }
 
             // Check if user has permission to update roles (admin only)
@@ -408,7 +444,11 @@ try {
             if ($success) {
                 sendResponse('success', 'Member role updated successfully');
             } else {
-                sendResponse('error', 'Failed to update member role', null, 500);
+                $errorMessage = 'Failed to update member role';
+                if ($new_role === 'editor' && !$spaceModel->supportsEditorRole()) {
+                    $errorMessage = 'Failed to update member role because the editor role is not supported by the database schema.';
+                }
+                sendResponse('error', $errorMessage, null, 500);
             }
             break;
 

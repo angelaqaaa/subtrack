@@ -5,7 +5,7 @@
 
 // Set JSON response headers and enable CORS
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: http://localhost:3003');
+header('Access-Control-Allow-Origin: http://localhost:3000');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-Key');
 header('Access-Control-Allow-Credentials: true');
@@ -212,6 +212,40 @@ try {
                 sendResponse('success', "Subscription $status successfully");
             } else {
                 sendResponse('error', 'Failed to update subscription status', null, 500);
+            }
+            break;
+
+        case 'update_category':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $old_category_name = $_POST['old_category_name'] ?? '';
+            $new_category_name = $_POST['new_category_name'] ?? '';
+
+            if (empty($old_category_name) || empty($new_category_name)) {
+                sendResponse('error', 'Both old and new category names are required', null, 400);
+            }
+
+            if ($old_category_name === $new_category_name) {
+                sendResponse('error', 'New category name must be different from old name', null, 400);
+            }
+
+            try {
+                // Update category in regular subscriptions
+                $success1 = $subscriptionModel->updateCategoryName($user_id, $old_category_name, $new_category_name);
+
+                // Update category in space subscriptions
+                $success2 = $subscriptionModel->updateSpaceCategoryName($user_id, $old_category_name, $new_category_name);
+
+                if ($success1 || $success2) {
+                    sendResponse('success', 'Category updated successfully across all subscriptions');
+                } else {
+                    sendResponse('success', 'No subscriptions found with that category name');
+                }
+            } catch (Exception $e) {
+                error_log('Update category error: ' . $e->getMessage());
+                sendResponse('error', 'Failed to update category', null, 500);
             }
             break;
 

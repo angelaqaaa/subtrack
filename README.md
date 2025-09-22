@@ -1,14 +1,19 @@
 # SubTrack
 
-SubTrack is a subscription management and analytics platform for individuals and collaborative teams. The project pairs a PHP MVC backend with a React dashboard to help you organize recurring services, surface spending insights, and expose data via a secure API.
+SubTrack is a subscription management and analytics platform for individuals and collaborative teams. The project pairs a PHP-driven experience with a modern React dashboard to help you organize recurring services, surface spending insights, and expose data via a secure API.
+
+## Dual Interface Overview
+- **Classic PHP Interface**: Procedural pages (`index.php`, `dashboard.php`, etc.) and MVC controllers (`dashboard_mvc.php`, `src/Controllers/*`) render server-side views from `src/Views`. This interface is session-first, requires no build step, and is ideal for constrained hosting or rapid iteration.
+- **React Single-Page App**: Lives under `frontend/`, bootstrapped with Create React App. It consumes the same PHP endpoints (`api_auth.php`, `api_dashboard.php`, `api_spaces.php`) over JSON, adopts React-Bootstrap for UI, and layers richer visualizations (Chart.js, jsPDF exports).
+- Both UIs run against the same MySQL database and share the PHP session cookie (`PHPSESSID`). The SPA communicates over CORS (`http://localhost:3003` → `http://localhost:8000`) using `withCredentials: true` so login state remains consistent between experiences.
 
 ## Feature Highlights
 - Personal dashboards summarizing active and ended subscriptions, monthly totals, and category breakdowns.
 - Shared Spaces for collaborative subscription management with invitations and role-aware access controls.
-- In-depth Insights and Reports with trends, filters, and export helpers (server-rendered reports plus SPA visualizations).
+- In-depth Insights and Reports with trends, filters, and export helpers (server-rendered tables plus SPA charts/PDFs).
 - API key generation and rate-limited REST endpoints for external integrations.
 - Security primitives including CSRF tokens, session hardening, audit logging, and granular validation.
-- Legacy PHP pages retained alongside the SPA for gradual modernization.
+- Legacy PHP flows retained alongside the SPA for gradual modernization without feature loss.
 
 ## Architecture Overview
 - **Backend (`src/`)**: Plain PHP structured around controllers, models, and views. Procedural endpoints (`api_auth.php`, `api_dashboard.php`, `api_spaces.php`, `api.php`) expose JSON APIs to the React app and third parties.
@@ -53,14 +58,14 @@ mysql -u <user> -p subtrack_db < database/migrations/add_api_key_migration.sql
 
 Seed data or run diagnostics with the helper scripts in `tests/` as needed.
 
-### 4. Run the PHP application
+### 4. Run the PHP interface
 From the project root:
 
 ```bash
 php -S localhost:8000
 ```
 
-This serves the classic PHP pages (`index.php`, `dashboard.php`, etc.) and JSON endpoints (`/api_*.php`). For production, configure Apache/Nginx to point at the project root, enable HTTPS, and lock down CORS origins.
+Navigate to `http://localhost:8000/index.php` for the marketing/landing page. Auth flows (`login.php`, `register.php`) and dashboards (`dashboard.php`, `dashboard_mvc.php?action=index`) are fully server-rendered.
 
 ### 5. Launch the React dashboard (optional)
 ```bash
@@ -70,25 +75,45 @@ npm install
 PORT=3003 npm start
 ```
 
-The SPA expects the backend at `http://localhost:8000` and uses cookies (`withCredentials: true`) for authentication. Update the CORS header in `api_dashboard.php`/`api_auth.php` if you host the frontend on a different origin. Build for production with `npm run build`.
+The SPA expects the backend at `http://localhost:8000` and uses cookies (`withCredentials: true`) for authentication. Update the CORS header in `api_dashboard.php`/`api_auth.php` if you host the frontend on a different origin. Build for production with `npm run build` and serve `frontend/build` using your web server of choice.
 
 ### 6. Create an account
-- Use the PHP UI (`register.php`) or the SPA's registration flow.
+- Use either the PHP UI (`register.php`) or the SPA's registration flow.
+- Once logged in via one interface, the other recognizes the session automatically (shared cookie).
 - Generate API keys via `generate_api_key.php` or explore the API Keys screen inside the SPA (currently backed by local storage for mock data until full API endpoints are wired).
 
 ## Working with the Application
 
-- **Subscriptions**: `src/Models/SubscriptionModel.php` powers CRUD operations, status toggling, and cost calculations. The SPA components under `frontend/src/components/subscriptions/` provide modals for add/edit/delete actions.
-- **Spaces and Invitations**: `SpaceModel.php` plus `InvitationModel.php` manage collaborative spaces. React components under `frontend/src/components/spaces/` surface creation, invitations, and membership management.
-- **Insights and Reports**: `InsightsModel.php` and `reports.php` produce spending trends, while the SPA dashboards visualize charts via Chart.js and can export PDFs with jsPDF.
-- **API Access**: `api.php` exposes read endpoints (`summary`, `subscriptions`, `categories`, `insights`) protected by API keys and a simple rate limiter. Example request:
+### Classic PHP Interface
+- Entry points such as `dashboard.php`, `categories.php`, `reports.php`, and `subscription_history.php` deliver Bootstrap-based pages.
+- `dashboard_mvc.php` routes to `DashboardController`, which gathers data from `SubscriptionModel`, `SpaceModel`, and `CategoryModel` before rendering `src/Views/dashboard/index.php`.
+- Controllers/Views handle CSRF validation (`src/Config/csrf.php`), flash messaging, and audit logging (`src/Utils/AuditLogger.php`).
 
-  ```bash
-  curl -H "X-API-Key: <your-key>" \
-       http://localhost:8000/api.php?endpoint=summary
-  ```
+### React Dashboard
+- `frontend/src/components/dashboard/` renders cards and charts fed by `subscriptionsAPI` (`frontend/src/services/api.js`).
+- Protected routes (`frontend/src/ProtectedRoute.js`) guard SPA routes using the session-aware `AuthContext`.
+- Spaces, invitations, and API key UIs reside in `frontend/src/components/spaces/` and `frontend/src/components/apikeys/`. Some flows currently stub data via `localStorage` so UI work can continue before wiring additional endpoints.
 
-- **Security**: CSRF tokens (`src/Config/csrf.php`), audit logging (`src/Utils/AuditLogger.php`), password hashing, and conservative validation guard sensitive flows. Review cookie flags (`session.cookie_secure`, `session.cookie_samesite`) before enabling HTTPS.
+### Shared Services and Data Flow
+- **Authentication**: `api_auth.php` mirrors the PHP form login; both update the same `users` table and session. CSRF tokens protect form submissions, while the SPA relies on credentialed XHR requests.
+- **Subscriptions**: `SubscriptionModel.php` powers CRUD, status toggling, and HTML row generation for PHP views. The same model feeds `api_dashboard.php` for SPA consumers.
+- **Spaces & Invitations**: `SpaceModel.php` and `InvitationModel.php` back both `spaces.php` (server-rendered) and SPA modals; JSON endpoints live in `api_spaces.php`.
+- **Insights & Reports**: `InsightsModel.php` and `reports.php` provide historical spending data; SPA charts call into `/api_dashboard.php?action=get_insights` and `/api_dashboard.php?action=get_summary`.
+
+## API Access
+`api.php` exposes read endpoints (`summary`, `subscriptions`, `categories`, `insights`) protected by API keys and a simple rate limiter. Example request:
+
+```bash
+curl -H "X-API-Key: <your-key>" \
+     http://localhost:8000/api.php?endpoint=summary
+```
+
+Generate keys through `generate_api_key.php` (PHP UI) or the SPA's API Keys section.
+
+## Security Considerations
+- Review `session.cookie_secure`, `session.cookie_samesite`, and `session.cookie_httponly` before deploying to HTTPS. The SPA requires `SameSite=None` when hosted on a different origin.
+- CSRF tokens (`src/Config/csrf.php`) are injected into PHP forms; ensure SPA forms include hidden tokens when posting multipart data to PHP endpoints.
+- Audit logs (`storage/audit.log` by default) capture key user actions for compliance.
 
 ## Current Frontend Status
 Some SPA modules ship with mock or local-storage data to showcase UI flows ahead of backend endpoints:
@@ -123,9 +148,9 @@ These stubs make it easy to iterate on UI while wiring the corresponding PHP API
 
 ## Deployment Checklist
 - Serve the PHP app behind Apache or Nginx with HTTPS and optimized PHP-FPM settings.
-- Update CORS headers in `api_*.php` to whitelist production origins.
+- Update CORS headers in `api_*.php` to whitelist production origins and align with your SPA host.
   - Enable `session.cookie_secure=1` and `session.cookie_samesite=Lax` (or `None` for cross-site cookies).
-- Run `npm run build` and serve the `frontend/build` output (optionally from the same domain to reuse cookies).
+- Run `npm run build` and serve the `frontend/build` output (optionally from the same domain to reuse cookies without `SameSite=None`).
 - Rotate the default API key secret and enforce environment-specific credentials.
 - Set up automated backups for the `subtrack_db` database and `storage/` logs.
 
