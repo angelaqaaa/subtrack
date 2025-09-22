@@ -199,36 +199,6 @@ const response = await fetch('/api_auth.php?action=login', {
 });
 ```
 
-## 🚀 Deployment
-
-### Production Environment
-```bash
-# Build React application
-cd frontend && npm run build
-
-# Configure web server to serve frontend/build
-# Update CORS headers for production domain
-# Enable HTTPS for secure cookies
-# Set environment variables for production
-```
-
-### Docker Deployment (Optional)
-```dockerfile
-# Example Dockerfile structure
-FROM php:8.1-apache
-# Configure PHP extensions and Apache
-# Copy application files
-# Set up production environment
-```
-
-### Security Checklist
-- [ ] Update CORS origins for production domain
-- [ ] Enable `session.cookie_secure=1` for HTTPS
-- [ ] Set strong `CSRF_SECRET` in environment
-- [ ] Configure database with restricted user permissions
-- [ ] Enable error logging and monitoring
-- [ ] Set up automated backups for database and audit logs
-
 ## 🧪 Testing
 
 ### Automated Testing
@@ -243,14 +213,6 @@ cd frontend && npm test
 # Integration testing
 # Follow TESTING_GUIDE.md for comprehensive scenarios
 ```
-
-### Manual Testing Guide
-Comprehensive testing procedures are documented in [`TESTING_GUIDE.md`](TESTING_GUIDE.md), covering:
-- Authentication flows with 2FA
-- Multi-user collaboration scenarios
-- Error handling and edge cases
-- Cross-browser compatibility
-- Performance benchmarking
 
 ## 🤝 Contributing
 
