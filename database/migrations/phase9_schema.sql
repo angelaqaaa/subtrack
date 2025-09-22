@@ -20,7 +20,7 @@ CREATE TABLE space_users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     space_id INT NOT NULL,
     user_id INT NOT NULL,
-    role ENUM('admin', 'viewer') NOT NULL DEFAULT 'viewer',
+    role ENUM('admin', 'editor', 'viewer') NOT NULL DEFAULT 'viewer',
     invited_by INT NOT NULL,
     invited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     accepted_at TIMESTAMP NULL,

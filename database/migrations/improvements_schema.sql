@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS space_invitations (
     inviter_id INT NOT NULL,
     invitee_email VARCHAR(255) NOT NULL,
     invitee_id INT NULL, -- Set when email matches existing user
-    role ENUM('admin', 'viewer') NOT NULL DEFAULT 'viewer',
+    role ENUM('admin', 'editor', 'viewer') NOT NULL DEFAULT 'viewer',
     status ENUM('pending', 'accepted', 'declined', 'expired') DEFAULT 'pending',
     invitation_token VARCHAR(64) NOT NULL UNIQUE,
     invited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

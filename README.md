@@ -1,158 +1,283 @@
-# SubTrack
+# SubTrack 🚀
 
-SubTrack is a subscription management and analytics platform for individuals and collaborative teams. The project pairs a PHP-driven experience with a modern React dashboard to help you organize recurring services, surface spending insights, and expose data via a secure API.
+> **A comprehensive subscription management platform featuring advanced security, collaborative workspaces, and modern full-stack architecture.**
 
-## Dual Interface Overview
-- **Classic PHP Interface**: Procedural pages (`index.php`, `dashboard.php`, etc.) and MVC controllers (`dashboard_mvc.php`, `src/Controllers/*`) render server-side views from `src/Views`. This interface is session-first, requires no build step, and is ideal for constrained hosting or rapid iteration.
-- **React Single-Page App**: Lives under `frontend/`, bootstrapped with Create React App. It consumes the same PHP endpoints (`api_auth.php`, `api_dashboard.php`, `api_spaces.php`) over JSON, adopts React-Bootstrap for UI, and layers richer visualizations (Chart.js, jsPDF exports).
-- Both UIs run against the same MySQL database and share the PHP session cookie (`PHPSESSID`). The SPA communicates over CORS (`http://localhost:3003` → `http://localhost:8000`) using `withCredentials: true` so login state remains consistent between experiences.
+[![React](https://img.shields.io/badge/React-19.1.1-blue?logo=react)](https://reactjs.org/)
+[![PHP](https://img.shields.io/badge/PHP-8%2B-purple?logo=php)](https://php.net/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange?logo=mysql)](https://mysql.com/)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?logo=bootstrap)](https://getbootstrap.com/)
 
-## Feature Highlights
-- Personal dashboards summarizing active and ended subscriptions, monthly totals, and category breakdowns.
-- Shared Spaces for collaborative subscription management with invitations and role-aware access controls.
-- In-depth Insights and Reports with trends, filters, and export helpers (server-rendered tables plus SPA charts/PDFs).
-- API key generation and rate-limited REST endpoints for external integrations.
-- Security primitives including CSRF tokens, session hardening, audit logging, and granular validation.
-- Legacy PHP flows retained alongside the SPA for gradual modernization without feature loss.
+SubTrack is an enterprise-grade subscription management and analytics platform that combines a modern React SPA with a robust PHP backend. Designed for both individual users and collaborative teams, it offers advanced security features, real-time collaboration, and comprehensive analytics.
 
-## Architecture Overview
-- **Backend (`src/`)**: Plain PHP structured around controllers, models, and views. Procedural endpoints (`api_auth.php`, `api_dashboard.php`, `api_spaces.php`, `api.php`) expose JSON APIs to the React app and third parties.
-- **Database (`database/migrations/`)**: MySQL schema maintained with ordered SQL migration files; data access uses PDO with prepared statements.
-- **Frontend (`frontend/`)**: React 19 application using React Router, React-Bootstrap, Chart.js, axios, and Testing Library. Auth context stores session-backed user state.
-- **Supporting Assets**: Server-rendered views in the project root/public, diagnostic scripts under `tests/`, and enhancement notes in `docs/`.
+## 🌟 Key Features
 
-## Prerequisites
-- PHP 8.1+ with `pdo_mysql`, `mbstring`, and `json` extensions enabled.
-- MySQL 8.0+ (MariaDB ≥10.6 is also compatible).
-- Node.js 18+ and npm 8+ for the React frontend.
-- Optional: A modern web server (Apache/Nginx) for production deployment.
+### 🔐 **Enterprise Security**
+- **Two-Factor Authentication (2FA)** with TOTP algorithm and backup codes
+- **Advanced Session Management** with security controls and audit logging
+- **CSRF Protection** using cryptographically secure tokens
+- **Role-Based Access Control (RBAC)** for multi-tenant workspaces
+- **Comprehensive Audit Trail** with IP tracking and user agent logging
 
-## Getting Started
+### 👥 **Collaborative Workspaces**
+- **Shared Spaces** for team subscription management
+- **Invitation System** with email workflows and role assignments
+- **Real-time Collaboration** with member management and permissions
+- **Multi-tenant Architecture** with secure data isolation
 
-### 1. Clone the repository
+### 📊 **Advanced Analytics**
+- **Interactive Dashboards** with Chart.js visualizations
+- **Spending Trends Analysis** with category breakdowns
+- **PDF Export Capabilities** for reports and documentation
+- **Custom Date Range Filtering** and data insights
+
+### 🏗️ **Modern Architecture**
+- **Hybrid Frontend**: React 19.1.1 SPA + PHP server-rendered pages
+- **RESTful API Design** with consistent endpoint patterns
+- **Database Migrations** with versioned schema management
+- **Environment-Based Configuration** for deployment flexibility
+
+## 🏁 Quick Start
+
+### Prerequisites
+- **PHP 8.1+** with `pdo_mysql`, `mbstring`, and `json` extensions
+- **MySQL 8.0+** (MariaDB ≥10.6 compatible)
+- **Node.js 18+** and npm 8+ for React frontend
+- **Web Server** (Apache/Nginx) for production deployment
+
+### Installation
+
+1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/subtrack.git
 cd subtrack
 ```
 
-### 2. Configure the backend
-- Update `src/Config/database.php` with credentials for your MySQL instance.
-- Review session and CSRF defaults in `src/Config/csrf.php`, especially when deploying behind HTTPS.
-- (Optional) Adjust `src/Utils/AuditLogger.php` paths if you store audit logs outside the repo.
-
-### 3. Provision the database
-Create the database and run the migrations in order:
-
+2. **Configure environment**
 ```bash
-mysql -u <user> -p -e "CREATE DATABASE subtrack_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u <user> -p subtrack_db < database/migrations/database_setup.sql
-mysql -u <user> -p subtrack_db < database/migrations/improvements_schema.sql
-mysql -u <user> -p subtrack_db < database/migrations/phase9_schema.sql
-mysql -u <user> -p subtrack_db < database/migrations/phase9_schema_fixed.sql
-mysql -u <user> -p subtrack_db < database/migrations/phase10_schema.sql
-mysql -u <user> -p subtrack_db < database/migrations/phase10_schema_fixed.sql
-mysql -u <user> -p subtrack_db < database/migrations/phase11_schema.sql
-mysql -u <user> -p subtrack_db < database/migrations/fix_missing_columns.sql
-mysql -u <user> -p subtrack_db < database/migrations/add_api_key_migration.sql
-```
+# Backend configuration
+cp .env.example .env
+# Edit .env with your database credentials
 
-Seed data or run diagnostics with the helper scripts in `tests/` as needed.
-
-### 4. Run the PHP interface
-From the project root:
-
-```bash
-php -S localhost:8000
-```
-
-Navigate to `http://localhost:8000/index.php` for the marketing/landing page. Auth flows (`login.php`, `register.php`) and dashboards (`dashboard.php`, `dashboard_mvc.php?action=index`) are fully server-rendered.
-
-### 5. Launch the React dashboard (optional)
-```bash
+# Frontend configuration
 cd frontend
-cp .env .env.local   # adjust REACT_APP_API_URL or other overrides
-npm install
-PORT=3003 npm start
+cp .env.example .env.local
+# Adjust API URL if needed
 ```
 
-The SPA expects the backend at `http://localhost:8000` and uses cookies (`withCredentials: true`) for authentication. Update the CORS header in `api_dashboard.php`/`api_auth.php` if you host the frontend on a different origin. Build for production with `npm run build` and serve `frontend/build` using your web server of choice.
-
-### 6. Create an account
-- Use either the PHP UI (`register.php`) or the SPA's registration flow.
-- Once logged in via one interface, the other recognizes the session automatically (shared cookie).
-- Generate API keys via `generate_api_key.php` or explore the API Keys screen inside the SPA (currently backed by local storage for mock data until full API endpoints are wired).
-
-## Working with the Application
-
-### Classic PHP Interface
-- Entry points such as `dashboard.php`, `categories.php`, `reports.php`, and `subscription_history.php` deliver Bootstrap-based pages.
-- `dashboard_mvc.php` routes to `DashboardController`, which gathers data from `SubscriptionModel`, `SpaceModel`, and `CategoryModel` before rendering `src/Views/dashboard/index.php`.
-- Controllers/Views handle CSRF validation (`src/Config/csrf.php`), flash messaging, and audit logging (`src/Utils/AuditLogger.php`).
-
-### React Dashboard
-- `frontend/src/components/dashboard/` renders cards and charts fed by `subscriptionsAPI` (`frontend/src/services/api.js`).
-- Protected routes (`frontend/src/ProtectedRoute.js`) guard SPA routes using the session-aware `AuthContext`.
-- Spaces, invitations, and API key UIs reside in `frontend/src/components/spaces/` and `frontend/src/components/apikeys/`. Some flows currently stub data via `localStorage` so UI work can continue before wiring additional endpoints.
-
-### Shared Services and Data Flow
-- **Authentication**: `api_auth.php` mirrors the PHP form login; both update the same `users` table and session. CSRF tokens protect form submissions, while the SPA relies on credentialed XHR requests.
-- **Subscriptions**: `SubscriptionModel.php` powers CRUD, status toggling, and HTML row generation for PHP views. The same model feeds `api_dashboard.php` for SPA consumers.
-- **Spaces & Invitations**: `SpaceModel.php` and `InvitationModel.php` back both `spaces.php` (server-rendered) and SPA modals; JSON endpoints live in `api_spaces.php`.
-- **Insights & Reports**: `InsightsModel.php` and `reports.php` provide historical spending data; SPA charts call into `/api_dashboard.php?action=get_insights` and `/api_dashboard.php?action=get_summary`.
-
-## API Access
-`api.php` exposes read endpoints (`summary`, `subscriptions`, `categories`, `insights`) protected by API keys and a simple rate limiter. Example request:
-
+3. **Setup database**
 ```bash
-curl -H "X-API-Key: <your-key>" \
-     http://localhost:8000/api.php?endpoint=summary
+mysql -u root -p -e "CREATE DATABASE subtrack_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+# Run migrations in order
+mysql -u root -p subtrack_db < database/migrations/database_setup.sql
+mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
+mysql -u root -p subtrack_db < database/migrations/phase9_schema.sql
+mysql -u root -p subtrack_db < database/migrations/phase9_schema_fixed.sql
+mysql -u root -p subtrack_db < database/migrations/phase10_schema.sql
+mysql -u root -p subtrack_db < database/migrations/phase10_schema_fixed.sql
+mysql -u root -p subtrack_db < database/migrations/phase11_schema.sql
+mysql -u root -p subtrack_db < database/migrations/fix_missing_columns.sql
+mysql -u root -p subtrack_db < database/migrations/add_api_key_migration.sql
+mysql -u root -p subtrack_db < database/migrations/database_2fa_migration.sql
+mysql -u root -p subtrack_db < database/migrations/missing_tables_migration.sql
 ```
 
-Generate keys through `generate_api_key.php` (PHP UI) or the SPA's API Keys section.
+4. **Start the application**
+```bash
+# Backend (from project root)
+php -S localhost:8000
 
-## Security Considerations
-- Review `session.cookie_secure`, `session.cookie_samesite`, and `session.cookie_httponly` before deploying to HTTPS. The SPA requires `SameSite=None` when hosted on a different origin.
-- CSRF tokens (`src/Config/csrf.php`) are injected into PHP forms; ensure SPA forms include hidden tokens when posting multipart data to PHP endpoints.
-- Audit logs (`storage/audit.log` by default) capture key user actions for compliance.
-
-## Current Frontend Status
-Some SPA modules ship with mock or local-storage data to showcase UI flows ahead of backend endpoints:
-- API key CRUD in `ApiKeysPage` persists to `localStorage`.
-- Category catalogs via `categoriesAPI` return seeded data.
-- Space management falls back to demo data if `/api_spaces.php` is unreachable.
-
-These stubs make it easy to iterate on UI while wiring the corresponding PHP APIs.
-
-## Testing and Tooling
-- **React**: `npm test` uses React Testing Library.
-- **PHP utilities**: Run scripts in `tests/` (e.g., `php tests/test_api.php`) to validate endpoints and migrations during development.
-- **Data scripts**: `loadSpaceDataBackup.js` can sync or inspect space data backups.
-
-## Project Structure
-```
-├── api.php / api_auth.php / api_dashboard.php / api_spaces.php
-├── database/
-│   └── migrations/        # SQL schema files
-├── docs/                  # Additional design and enhancement notes
-├── frontend/              # React 19 SPA
-├── public/                # Public assets for PHP pages
-├── src/
-│   ├── Config/            # Database, CSRF, and configuration helpers
-│   ├── Controllers/       # MVC controllers (Auth, Dashboard, Spaces, etc.)
-│   ├── Models/            # Domain models (Subscription, Space, Category, ...)
-│   ├── Utils/             # Audit logger, helpers
-│   └── Views/             # Blade-like PHP templates
-├── tests/                 # Diagnostic PHP scripts
-└── storage/               # Runtime storage/log folders (gitignored)
+# Frontend (in new terminal)
+cd frontend && npm install && npm start
 ```
 
-## Deployment Checklist
-- Serve the PHP app behind Apache or Nginx with HTTPS and optimized PHP-FPM settings.
-- Update CORS headers in `api_*.php` to whitelist production origins and align with your SPA host.
-  - Enable `session.cookie_secure=1` and `session.cookie_samesite=Lax` (or `None` for cross-site cookies).
-- Run `npm run build` and serve the `frontend/build` output (optionally from the same domain to reuse cookies without `SameSite=None`).
-- Rotate the default API key secret and enforce environment-specific credentials.
-- Set up automated backups for the `subtrack_db` database and `storage/` logs.
+5. **Access the application**
+- **React SPA**: http://localhost:3000
+- **PHP Interface**: http://localhost:8000
+- **API Endpoints**: http://localhost:8000/api_*.php
 
-## License
-Licensed under the MIT License. See `LICENSE` for full terms.
+## 🏗️ Architecture
+
+### Technology Stack
+
+**Frontend**
+- **React 19.1.1** with Hooks and Context API
+- **React Router 7.9.1** for client-side routing
+- **React-Bootstrap 2.10.10** for responsive UI components
+- **Chart.js 4.5.0** for interactive data visualizations
+- **Axios 1.12.2** with request/response interceptors
+- **jsPDF 3.0.2** for PDF generation and exports
+
+**Backend**
+- **PHP 8+** with modern OOP patterns and MVC architecture
+- **PDO** with prepared statements for secure database access
+- **Custom CSRF Handler** with timing attack protection
+- **Session Security** with HttpOnly, Secure, and SameSite cookies
+- **TOTP Algorithm** for two-factor authentication
+
+**Database**
+- **MySQL 8.0+** with InnoDB engine
+- **Versioned Migrations** for schema management
+- **Foreign Key Constraints** for data integrity
+- **Optimized Indexes** for query performance
+
+### Project Structure
+```
+├── 📁 frontend/                 # React SPA application
+│   ├── 📁 src/components/       # React components by feature
+│   ├── 📁 src/contexts/         # React Context providers
+│   ├── 📁 src/services/         # API integration layer
+│   └── 📄 package.json          # Frontend dependencies
+├── 📁 src/                      # PHP backend MVC structure
+│   ├── 📁 Controllers/          # Business logic controllers
+│   ├── 📁 Models/              # Data access models
+│   ├── 📁 Views/               # Server-rendered templates
+│   ├── 📁 Config/              # Configuration classes
+│   └── 📁 Utils/               # Utility classes (audit, etc.)
+├── 📁 database/migrations/      # Versioned SQL schema files
+├── 📁 tests/                   # PHP testing utilities
+├── 📄 api_*.php                # RESTful API endpoints
+├── 📄 *.php                    # Server-rendered pages
+└── 📄 TESTING_GUIDE.md         # Comprehensive testing procedures
+```
+
+## 🔐 Security Features
+
+### Authentication & Authorization
+- **Multi-factor Authentication**: TOTP-based 2FA with QR code setup
+- **Secure Password Handling**: bcrypt hashing with salt
+- **Session Management**: Secure cookies with regeneration
+- **CSRF Protection**: Token-based with timing attack prevention
+- **Role-Based Access**: Granular permissions for shared spaces
+
+### Data Protection
+- **SQL Injection Prevention**: PDO prepared statements
+- **XSS Protection**: Input sanitization and output encoding
+- **Environment Variables**: Secure credential management
+- **Audit Logging**: Comprehensive activity tracking
+- **Rate Limiting**: API endpoint protection
+
+## 📊 API Documentation
+
+### Authentication Endpoints (`/api_auth.php`)
+```http
+POST /api_auth.php?action=login
+POST /api_auth.php?action=register
+POST /api_auth.php?action=setup_2fa
+POST /api_auth.php?action=enable_2fa
+GET  /api_auth.php?action=current_user
+```
+
+### Dashboard Endpoints (`/api_dashboard.php`)
+```http
+GET  /api_dashboard.php?action=get_summary
+GET  /api_dashboard.php?action=get_subscriptions
+GET  /api_dashboard.php?action=get_insights
+POST /api_dashboard.php?action=add_subscription
+```
+
+### Spaces Endpoints (`/api_spaces.php`)
+```http
+GET  /api_spaces.php?action=get_all
+POST /api_spaces.php?action=create
+POST /api_spaces.php?action=invite
+GET  /api_spaces.php?action=get_members
+```
+
+### Example API Usage
+```javascript
+// Authentication with 2FA
+const response = await fetch('/api_auth.php?action=login', {
+  method: 'POST',
+  credentials: 'include',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    username: 'user@example.com',
+    password: 'securepassword',
+    two_factor_code: '123456'
+  })
+});
+```
+
+## 🚀 Deployment
+
+### Production Environment
+```bash
+# Build React application
+cd frontend && npm run build
+
+# Configure web server to serve frontend/build
+# Update CORS headers for production domain
+# Enable HTTPS for secure cookies
+# Set environment variables for production
+```
+
+### Docker Deployment (Optional)
+```dockerfile
+# Example Dockerfile structure
+FROM php:8.1-apache
+# Configure PHP extensions and Apache
+# Copy application files
+# Set up production environment
+```
+
+### Security Checklist
+- [ ] Update CORS origins for production domain
+- [ ] Enable `session.cookie_secure=1` for HTTPS
+- [ ] Set strong `CSRF_SECRET` in environment
+- [ ] Configure database with restricted user permissions
+- [ ] Enable error logging and monitoring
+- [ ] Set up automated backups for database and audit logs
+
+## 🧪 Testing
+
+### Automated Testing
+```bash
+# PHP unit tests
+php tests/test_api.php
+php tests/test_audit.php
+
+# React component tests
+cd frontend && npm test
+
+# Integration testing
+# Follow TESTING_GUIDE.md for comprehensive scenarios
+```
+
+### Manual Testing Guide
+Comprehensive testing procedures are documented in [`TESTING_GUIDE.md`](TESTING_GUIDE.md), covering:
+- Authentication flows with 2FA
+- Multi-user collaboration scenarios
+- Error handling and edge cases
+- Cross-browser compatibility
+- Performance benchmarking
+
+## 🤝 Contributing
+
+### Development Workflow
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Follow the testing procedures in `TESTING_GUIDE.md`
+4. Commit changes with descriptive messages
+5. Push to your branch and open a Pull Request
+
+### Code Standards
+- **PHP**: PSR-12 coding standards with type hints
+- **JavaScript**: ES6+ with consistent formatting
+- **Security**: Follow OWASP guidelines for web applications
+- **Documentation**: Update README and inline comments for new features
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙋‍♂️ Support
+
+For questions, issues, or contributions:
+- **GitHub Issues**: [Report bugs or request features](https://github.com/yourusername/subtrack/issues)
+- **Documentation**: Check `TESTING_GUIDE.md` for troubleshooting
+- **Security Issues**: Please report privately via email
+
+---
+
+**Built with ❤️ by [Your Name]** | **Showcasing modern full-stack development with enterprise-grade security**

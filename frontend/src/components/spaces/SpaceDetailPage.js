@@ -47,7 +47,15 @@ const SpaceDetailPage = () => {
         }
       } catch (memberErr) {
         console.error('Members API failed:', memberErr);
-        setError('Failed to load space members. Please try again.');
+        const status = memberErr.response?.status;
+
+        if (status === 403) {
+          setError('You do not have access to this space or your invitation is still pending.');
+        } else if (status === 404) {
+          setError('We could not find that space or you do not have permission to view it.');
+        } else {
+          setError('Failed to load space members. Please try again.');
+        }
         setLoading(false);
         return;
       }
