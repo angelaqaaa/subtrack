@@ -280,4 +280,4 @@ For questions, issues, or contributions:
 
 ---
 
-**Built with ❤️ by [Your Name]** | **Showcasing modern full-stack development with enterprise-grade security**
+**Built by Qian (Angela) Su** | **Showcasing modern full-stack development with enterprise-grade security**
