@@ -160,22 +160,50 @@ class SubscriptionModel {
      * Update an existing subscription
      */
     public function updateSubscription($subscription_id, $user_id, $data) {
-        $sql = "UPDATE subscriptions SET service_name=?, cost=?, currency=?, billing_cycle=?, start_date=?, category=? WHERE id=? AND user_id=?";
+        try {
+            $this->pdo->beginTransaction();
 
-        if($stmt = $this->pdo->prepare($sql)) {
-            $stmt->bindParam(1, $data['service_name'], PDO::PARAM_STR);
-            $stmt->bindParam(2, $data['cost'], PDO::PARAM_STR);
-            $stmt->bindParam(3, $data['currency'], PDO::PARAM_STR);
-            $stmt->bindParam(4, $data['billing_cycle'], PDO::PARAM_STR);
-            $stmt->bindParam(5, $data['start_date'], PDO::PARAM_STR);
-            $stmt->bindParam(6, $data['category'], PDO::PARAM_STR);
-            $stmt->bindParam(7, $subscription_id, PDO::PARAM_INT);
-            $stmt->bindParam(8, $user_id, PDO::PARAM_INT);
+            // Calculate is_active based on end_date
+            $is_active = true;
+            if (!empty($data['end_date'])) {
+                $end_date = new DateTime($data['end_date']);
+                $now = new DateTime();
+                $is_active = $end_date > $now;
+            }
 
-            return $stmt->execute();
+            // Update subscription with recalculated active status
+            $sql = "UPDATE subscriptions SET service_name=?, cost=?, currency=?, billing_cycle=?, start_date=?, end_date=?, category=?, is_active=? WHERE id=? AND user_id=?";
+
+            if($stmt = $this->pdo->prepare($sql)) {
+                $stmt->bindParam(1, $data['service_name'], PDO::PARAM_STR);
+                $stmt->bindParam(2, $data['cost'], PDO::PARAM_STR);
+                $stmt->bindParam(3, $data['currency'], PDO::PARAM_STR);
+                $stmt->bindParam(4, $data['billing_cycle'], PDO::PARAM_STR);
+                $stmt->bindParam(5, $data['start_date'], PDO::PARAM_STR);
+                $stmt->bindParam(6, $data['end_date'], PDO::PARAM_STR);
+                $stmt->bindParam(7, $data['category'], PDO::PARAM_STR);
+                $stmt->bindParam(8, $is_active, PDO::PARAM_BOOL);
+                $stmt->bindParam(9, $subscription_id, PDO::PARAM_INT);
+                $stmt->bindParam(10, $user_id, PDO::PARAM_INT);
+
+                $result = $stmt->execute();
+                if ($result) {
+                    $this->pdo->commit();
+                    return true;
+                } else {
+                    $this->pdo->rollback();
+                    return false;
+                }
+            }
+
+            $this->pdo->rollback();
+            return false;
+
+        } catch (Exception $e) {
+            $this->pdo->rollback();
+            error_log('Update subscription error: ' . $e->getMessage());
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -576,6 +604,21 @@ class SubscriptionModel {
             'ended_subscriptions' => 0,
             'lifetime_spent' => 0.0
         ];
+    }
+
+    /**
+     * Update subscription status (activate/deactivate)
+     */
+    public function updateSubscriptionStatus($subscription_id, $is_active, $user_id) {
+        $sql = "UPDATE subscriptions SET is_active = ? WHERE id = ? AND user_id = ?";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $is_active, PDO::PARAM_BOOL);
+            $stmt->bindParam(2, $subscription_id, PDO::PARAM_INT);
+            $stmt->bindParam(3, $user_id, PDO::PARAM_INT);
+            return $stmt->execute();
+        }
+        return false;
     }
 
 

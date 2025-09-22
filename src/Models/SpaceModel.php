@@ -134,6 +134,9 @@ class SpaceModel {
                 // Admin can do everything
                 if($user_role === 'admin') return true;
 
+                // Editor can edit and view
+                if($user_role === 'editor' && in_array($required_role, ['editor', 'viewer'])) return true;
+
                 // Viewer can only view
                 if($required_role === 'viewer' && $user_role === 'viewer') return true;
             }
@@ -182,6 +185,227 @@ class SpaceModel {
             return $stmt->execute();
         }
         return false;
+    }
+
+    /**
+     * Get pending invitations for a user
+     */
+    public function getPendingInvitations($user_id) {
+        $sql = "SELECT s.*, su.role, su.invited_at, inviter.username as invited_by_username
+                FROM spaces s
+                INNER JOIN space_users su ON s.id = su.space_id
+                INNER JOIN users inviter ON su.invited_by = inviter.id
+                WHERE su.user_id = ? AND su.status = 'pending'
+                ORDER BY su.invited_at DESC";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return [];
+    }
+
+    /**
+     * Accept space invitation
+     */
+    public function acceptInvitation($space_id, $user_id) {
+        $sql = "UPDATE space_users SET status = 'accepted', accepted_at = NOW()
+                WHERE space_id = ? AND user_id = ? AND status = 'pending'";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+            return $stmt->execute();
+        }
+        return false;
+    }
+
+    /**
+     * Reject space invitation
+     */
+    public function rejectInvitation($space_id, $user_id) {
+        $sql = "DELETE FROM space_users
+                WHERE space_id = ? AND user_id = ? AND status = 'pending'";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+            return $stmt->execute();
+        }
+        return false;
+    }
+
+    /**
+     * Check if user has any relationship with space (pending or accepted)
+     */
+    public function hasAnyRelationshipWithSpace($space_id, $user_id) {
+        $sql = "SELECT status FROM space_users
+                WHERE space_id = ? AND user_id = ?";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        }
+        return false;
+    }
+
+    /**
+     * Delete a space (only owner can delete)
+     */
+    public function deleteSpace($space_id, $user_id) {
+        try {
+            // Start transaction
+            $this->pdo->beginTransaction();
+
+            // First remove all space members
+            $sql1 = "DELETE FROM space_users WHERE space_id = ?";
+            if($stmt1 = $this->pdo->prepare($sql1)) {
+                $stmt1->bindParam(1, $space_id, PDO::PARAM_INT);
+                $stmt1->execute();
+            }
+
+            // Then delete the space itself
+            $sql2 = "DELETE FROM spaces WHERE id = ? AND owner_id = ?";
+            if($stmt2 = $this->pdo->prepare($sql2)) {
+                $stmt2->bindParam(1, $space_id, PDO::PARAM_INT);
+                $stmt2->bindParam(2, $user_id, PDO::PARAM_INT);
+                $result = $stmt2->execute();
+
+                if($result && $stmt2->rowCount() > 0) {
+                    $this->pdo->commit();
+                    return true;
+                } else {
+                    $this->pdo->rollback();
+                    return false;
+                }
+            }
+
+            $this->pdo->rollback();
+            return false;
+
+        } catch (Exception $e) {
+            $this->pdo->rollback();
+            error_log('Delete space error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Add a subscription to a space
+     */
+    public function addSubscription($space_id, $subscriptionData) {
+        // Calculate is_active based on end_date
+        $is_active = true;
+        if (!empty($subscriptionData['end_date'])) {
+            try {
+                $end_date = new DateTime($subscriptionData['end_date']);
+                $now = new DateTime();
+                $is_active = $end_date > $now;
+            } catch (Exception $e) {
+                // If date parsing fails, default to active
+                $is_active = true;
+            }
+        }
+
+        $sql = "INSERT INTO space_subscriptions (space_id, service_name, cost, currency, billing_cycle, start_date, end_date, category, added_by, is_active, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $subscriptionData['service_name'], PDO::PARAM_STR);
+            $stmt->bindParam(3, $subscriptionData['cost'], PDO::PARAM_STR);
+            $stmt->bindParam(4, $subscriptionData['currency'], PDO::PARAM_STR);
+            $stmt->bindParam(5, $subscriptionData['billing_cycle'], PDO::PARAM_STR);
+            $stmt->bindParam(6, $subscriptionData['start_date'], PDO::PARAM_STR);
+            $stmt->bindParam(7, $subscriptionData['end_date'], PDO::PARAM_STR);
+            $stmt->bindParam(8, $subscriptionData['category'], PDO::PARAM_STR);
+            $stmt->bindParam(9, $subscriptionData['added_by'], PDO::PARAM_INT);
+            $stmt->bindParam(10, $is_active, PDO::PARAM_BOOL);
+
+            if($stmt->execute()) {
+                return $this->pdo->lastInsertId();
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Sync existing user subscriptions to a space
+     */
+    public function syncExistingSubscriptions($space_id, $subscription_ids, $user_id) {
+        try {
+            $this->pdo->beginTransaction();
+            $synced_count = 0;
+
+            foreach($subscription_ids as $sub_id) {
+                // Get the subscription data from user's subscriptions
+                $sql = "SELECT * FROM subscriptions WHERE id = ? AND user_id = ?";
+                if($stmt = $this->pdo->prepare($sql)) {
+                    $stmt->bindParam(1, $sub_id, PDO::PARAM_INT);
+                    $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $subscription = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if($subscription) {
+                        // Check if already synced to this space
+                        $check_sql = "SELECT id FROM space_subscriptions WHERE space_id = ? AND service_name = ? AND added_by = ?";
+                        if($check_stmt = $this->pdo->prepare($check_sql)) {
+                            $check_stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+                            $check_stmt->bindParam(2, $subscription['service_name'], PDO::PARAM_STR);
+                            $check_stmt->bindParam(3, $user_id, PDO::PARAM_INT);
+                            $check_stmt->execute();
+
+                            if(!$check_stmt->fetch()) {
+                                // Not already synced, so add it
+                                $subscriptionData = [
+                                    'service_name' => $subscription['service_name'],
+                                    'cost' => $subscription['cost'],
+                                    'currency' => $subscription['currency'],
+                                    'billing_cycle' => $subscription['billing_cycle'],
+                                    'start_date' => $subscription['start_date'],
+                                    'end_date' => $subscription['end_date'],
+                                    'category' => $subscription['category'],
+                                    'added_by' => $user_id
+                                ];
+
+                                if($this->addSubscription($space_id, $subscriptionData)) {
+                                    $synced_count++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            $this->pdo->commit();
+            return $synced_count;
+
+        } catch (Exception $e) {
+            $this->pdo->rollback();
+            error_log('Sync subscriptions error: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Get all subscriptions in a space
+     */
+    public function getSpaceSubscriptions($space_id) {
+        $sql = "SELECT ss.*, u.username as added_by_username
+                FROM space_subscriptions ss
+                INNER JOIN users u ON ss.added_by = u.id
+                WHERE ss.space_id = ?
+                ORDER BY ss.created_at DESC";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $space_id, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        return [];
     }
 }
 ?>
