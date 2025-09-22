@@ -28,3 +28,31 @@ Homestead.json
 .env.production
 .phpactor.json
 auth.json
+
+# Temporary files
+.DS_Store
+*.log
+*.tmp
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+
+# Test results (exclude personal test results)
+TEST_RESULTS.md
+
+# Cookies and session files
+cookies.txt

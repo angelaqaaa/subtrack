@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Form, Button, Alert, Badge, Table, Modal } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button, Alert, Badge, Table, Modal, Spinner, Tab, Tabs } from 'react-bootstrap';
 import { parseISO, format, formatDistanceToNow } from 'date-fns';
+import QRCode from 'qrcode';
 import { useAuth } from '../../contexts/AuthContext';
-import { subscriptionsAPI } from '../../services/api';
+import { subscriptionsAPI, authAPI } from '../../services/api';
 import { ActivityLogger } from '../../utils/activityLogger';
 
 const ProfilePage = () => {
@@ -37,6 +38,40 @@ const ProfilePage = () => {
   const [recentActivities, setRecentActivities] = useState([]);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+
+  // Security-related state
+  const [sessions, setSessions] = useState([]);
+  const [loginHistory, setLoginHistory] = useState([]);
+  const [sessionsLoading, setSessionsLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [logoutAllLoading, setLogoutAllLoading] = useState(false);
+
+  // 2FA-related state
+  const [twoFAStatus, setTwoFAStatus] = useState({ enabled: false, backup_codes_remaining: 0 });
+  const [twoFALoading, setTwoFALoading] = useState(false);
+  const [setupSecret, setSetupSecret] = useState('');
+  const [qrCodeURL, setQrCodeURL] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [backupCodes, setBackupCodes] = useState([]);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+  const [twoFAPassword, setTwoFAPassword] = useState('');
+  const [show2FASetup, setShow2FASetup] = useState(false);
+  const [show2FADisable, setShow2FADisable] = useState(false);
+
+  // Account management state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [emailForm, setEmailForm] = useState({
+    newEmail: '',
+    password: ''
+  });
 
   useEffect(() => {
     loadProfileData();
@@ -157,8 +192,268 @@ const ProfilePage = () => {
     }
   };
 
+  // 2FA Functions
+  const load2FAStatus = async () => {
+    try {
+      setTwoFALoading(true);
+      const response = await authAPI.get2FAStatus();
+      if (response.status === 'success') {
+        setTwoFAStatus(response.data);
+      }
+    } catch (err) {
+      console.error('Failed to load 2FA status:', err);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleSetup2FA = async () => {
+    try {
+      setTwoFALoading(true);
+      const response = await authAPI.setup2FA();
+      if (response.status === 'success') {
+        setSetupSecret(response.data.secret);
+
+        // Generate QR code
+        const qrCodeDataURL = await QRCode.toDataURL(response.data.qr_url);
+        setQrCodeURL(qrCodeDataURL);
+
+        setShow2FASetup(true);
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError('Failed to setup 2FA');
+      console.error('2FA setup error:', err);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleEnable2FA = async () => {
+    try {
+      setTwoFALoading(true);
+      const response = await authAPI.enable2FA(setupSecret, verificationCode);
+      if (response.status === 'success') {
+        setBackupCodes(response.data.backup_codes);
+        setShowBackupCodes(true);
+        setShow2FASetup(false);
+        setSuccessMessage('Two-factor authentication enabled successfully!');
+        load2FAStatus();
+        setVerificationCode('');
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError('Failed to enable 2FA');
+      console.error('Enable 2FA error:', err);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleDisable2FA = async () => {
+    try {
+      setTwoFALoading(true);
+      const response = await authAPI.disable2FA(twoFAPassword, verificationCode);
+      if (response.status === 'success') {
+        setShow2FADisable(false);
+        setSuccessMessage('Two-factor authentication disabled successfully!');
+        load2FAStatus();
+        setTwoFAPassword('');
+        setVerificationCode('');
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError('Failed to disable 2FA');
+      console.error('Disable 2FA error:', err);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const handleGenerateBackupCodes = async () => {
+    try {
+      setTwoFALoading(true);
+      const response = await authAPI.generateBackupCodes(twoFAPassword);
+      if (response.status === 'success') {
+        setBackupCodes(response.data.backup_codes);
+        setShowBackupCodes(true);
+        setSuccessMessage('New backup codes generated successfully!');
+        load2FAStatus();
+        setTwoFAPassword('');
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError('Failed to generate backup codes');
+      console.error('Generate backup codes error:', err);
+    } finally {
+      setTwoFALoading(false);
+    }
+  };
+
+  const copyBackupCodes = () => {
+    const codesText = backupCodes.join('\n');
+    navigator.clipboard.writeText(codesText).then(() => {
+      setSuccessMessage('Backup codes copied to clipboard!');
+    }).catch(() => {
+      setError('Failed to copy backup codes');
+    });
+  };
+
+  const downloadBackupCodes = () => {
+    const codesText = backupCodes.join('\n');
+    const blob = new Blob([codesText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'subtrack-backup-codes.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Account management functions
+  const handlePasswordFormChange = (e) => {
+    setPasswordForm({
+      ...passwordForm,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleEmailFormChange = (e) => {
+    setEmailForm({
+      ...emailForm,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setError('New passwords do not match');
+      return;
+    }
+
+    setPasswordLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.changePassword(
+        passwordForm.currentPassword,
+        passwordForm.newPassword,
+        passwordForm.confirmPassword
+      );
+
+      if (response.status === 'success') {
+        setShowPasswordModal(false);
+        setPasswordForm({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        setSuccessMessage('Password changed successfully!');
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        setError(response.message || 'Failed to change password');
+      }
+    } catch (err) {
+      console.error('Password change error:', err);
+      setError(err.response?.data?.message || 'Failed to change password. Please try again.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
+  const handleChangeEmail = async (e) => {
+    e.preventDefault();
+    setEmailLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.changeEmail(
+        emailForm.newEmail,
+        emailForm.password
+      );
+
+      if (response.status === 'success') {
+        setShowEmailModal(false);
+        setEmailForm({
+          newEmail: '',
+          password: ''
+        });
+        setSuccessMessage('Email updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        setError(response.message || 'Failed to update email');
+      }
+    } catch (err) {
+      console.error('Email change error:', err);
+      setError(err.response?.data?.message || 'Failed to update email. Please try again.');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const handleSecuritySettings = () => {
     setShowSecurityModal(true);
+    loadSessions();
+    loadLoginHistory();
+    load2FAStatus();
+  };
+
+  const loadSessions = async () => {
+    try {
+      setSessionsLoading(true);
+      const response = await authAPI.getSessions();
+      if (response.status === 'success') {
+        setSessions(response.data.sessions || []);
+      }
+    } catch (err) {
+      console.error('Failed to load sessions:', err);
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  const loadLoginHistory = async () => {
+    try {
+      setHistoryLoading(true);
+      const response = await authAPI.getLoginHistory(10);
+      if (response.status === 'success') {
+        setLoginHistory(response.data.history || []);
+      }
+    } catch (err) {
+      console.error('Failed to load login history:', err);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleLogoutAllSessions = async () => {
+    if (!window.confirm('Are you sure you want to log out from all other sessions? This will not affect your current session.')) {
+      return;
+    }
+
+    try {
+      setLogoutAllLoading(true);
+      const response = await authAPI.logoutAllSessions();
+      if (response.status === 'success') {
+        setSuccessMessage('Successfully logged out from all other sessions');
+        setTimeout(() => setSuccessMessage(''), 3000);
+        loadSessions(); // Reload sessions
+      } else {
+        setError(response.message || 'Failed to logout sessions');
+      }
+    } catch (err) {
+      console.error('Logout all sessions error:', err);
+      setError('Failed to logout sessions. Please try again.');
+    } finally {
+      setLogoutAllLoading(false);
+    }
   };
 
   const handleExportData = async () => {
@@ -581,95 +876,624 @@ const ProfilePage = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row>
-            <Col md={6}>
-              <Card className="mb-3">
-                <Card.Header>
-                  <h6 className="mb-0">
-                    <i className="bi bi-key me-2"></i>
-                    Password Security
-                  </h6>
-                </Card.Header>
-                <Card.Body>
-                  <Form>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Current Password</Form.Label>
-                      <Form.Control type="password" placeholder="Enter current password" />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>New Password</Form.Label>
-                      <Form.Control type="password" placeholder="Enter new password" />
-                    </Form.Group>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Confirm New Password</Form.Label>
-                      <Form.Control type="password" placeholder="Confirm new password" />
-                    </Form.Group>
-                    <Button variant="primary" size="sm">
-                      <i className="bi bi-check-circle me-2"></i>
-                      Update Password
-                    </Button>
-                  </Form>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col md={6}>
-              <Card className="mb-3">
-                <Card.Header>
-                  <h6 className="mb-0">
-                    <i className="bi bi-shield-check me-2"></i>
-                    Two-Factor Authentication
-                  </h6>
-                </Card.Header>
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-3">
-                    <span>2FA Status</span>
-                    <Badge bg="danger" pill>Disabled</Badge>
-                  </div>
-                  <p className="text-muted small">
-                    Add an extra layer of security to your account by enabling two-factor authentication.
-                  </p>
-                  <Button variant="outline-success" size="sm">
-                    <i className="bi bi-plus-circle me-2"></i>
-                    Enable 2FA
-                  </Button>
-                </Card.Body>
-              </Card>
+          <Tabs defaultActiveKey="sessions" className="mb-3">
+            {/* Active Sessions Tab */}
+            <Tab eventKey="sessions" title="Active Sessions">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h6 className="mb-0">
+                  <i className="bi bi-clock-history me-2"></i>
+                  Active Login Sessions
+                </h6>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  onClick={handleLogoutAllSessions}
+                  disabled={logoutAllLoading}
+                >
+                  {logoutAllLoading ? (
+                    <>
+                      <Spinner animation="border" size="sm" className="me-2" />
+                      Logging out...
+                    </>
+                  ) : (
+                    <>
+                      <i className="bi bi-box-arrow-right me-2"></i>
+                      Sign Out All Sessions
+                    </>
+                  )}
+                </Button>
+              </div>
 
-              <Card>
-                <Card.Header>
-                  <h6 className="mb-0">
-                    <i className="bi bi-clock-history me-2"></i>
-                    Login Sessions
-                  </h6>
-                </Card.Header>
-                <Card.Body>
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <div>
-                      <small className="fw-medium">Current Session</small>
-                      <br />
-                      <small className="text-muted">Chrome on macOS</small>
+              {sessionsLoading ? (
+                <div className="text-center py-4">
+                  <Spinner animation="border" />
+                  <p className="mt-2 text-muted">Loading sessions...</p>
+                </div>
+              ) : sessions.length > 0 ? (
+                <div className="border rounded">
+                  {sessions.map((session, index) => (
+                    <div key={session.session_id} className={`p-3 ${index !== sessions.length - 1 ? 'border-bottom' : ''}`}>
+                      <div className="d-flex justify-content-between align-items-start">
+                        <div>
+                          <div className="fw-medium">
+                            {session.is_current ? 'Current Session' : 'Session'}
+                            {session.is_current && <Badge bg="success" pill className="ms-2">Current</Badge>}
+                          </div>
+                          <small className="text-muted d-block">
+                            IP: {session.ip_address}
+                          </small>
+                          <small className="text-muted d-block">
+                            Device: {session.user_agent.substring(0, 60)}...
+                          </small>
+                          <small className="text-muted">
+                            Last activity: {formatDistanceToNow(parseISO(session.last_activity))} ago
+                          </small>
+                        </div>
+                        <Badge bg={session.is_current ? "success" : "secondary"} pill>
+                          {session.is_current ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
                     </div>
-                    <Badge bg="success" pill>Active</Badge>
-                  </div>
-                  <hr />
-                  <Button variant="outline-danger" size="sm" className="w-100">
-                    <i className="bi bi-box-arrow-right me-2"></i>
-                    Sign Out All Sessions
-                  </Button>
-                </Card.Body>
-              </Card>
-            </Col>
-          </Row>
+                  ))}
+                </div>
+              ) : (
+                <Alert variant="info">
+                  <i className="bi bi-info-circle me-2"></i>
+                  No active sessions found.
+                </Alert>
+              )}
+
+              <div className="mt-3">
+                <small className="text-muted">
+                  <i className="bi bi-shield-check me-1"></i>
+                  Your current session will remain active when you sign out from all other sessions.
+                </small>
+              </div>
+            </Tab>
+
+            {/* Login History Tab */}
+            <Tab eventKey="history" title="Login History">
+              <h6 className="mb-3">
+                <i className="bi bi-clock-history me-2"></i>
+                Recent Login Activity
+              </h6>
+
+              {historyLoading ? (
+                <div className="text-center py-4">
+                  <Spinner animation="border" />
+                  <p className="mt-2 text-muted">Loading login history...</p>
+                </div>
+              ) : loginHistory.length > 0 ? (
+                <Table responsive hover>
+                  <thead>
+                    <tr>
+                      <th>Status</th>
+                      <th>Date & Time</th>
+                      <th>IP Address</th>
+                      <th>Device</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loginHistory.map((entry, index) => (
+                      <tr key={index}>
+                        <td>
+                          <Badge bg={entry.success ? "success" : "danger"} pill>
+                            {entry.success ? "Success" : "Failed"}
+                          </Badge>
+                        </td>
+                        <td>
+                          <div>{format(parseISO(entry.login_time), 'MMM dd, yyyy')}</div>
+                          <small className="text-muted">{format(parseISO(entry.login_time), 'h:mm a')}</small>
+                        </td>
+                        <td>
+                          <code className="small">{entry.ip_address}</code>
+                        </td>
+                        <td>
+                          <small className="text-muted">{entry.user_agent.substring(0, 40)}...</small>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              ) : (
+                <Alert variant="info">
+                  <i className="bi bi-info-circle me-2"></i>
+                  No login history available.
+                </Alert>
+              )}
+            </Tab>
+
+            {/* Two-Factor Authentication Tab */}
+            <Tab eventKey="security" title="Two-Factor Authentication">
+              {error && (
+                <Alert variant="danger" onClose={() => setError('')} dismissible>
+                  {error}
+                </Alert>
+              )}
+              {successMessage && (
+                <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>
+                  {successMessage}
+                </Alert>
+              )}
+
+              {twoFALoading ? (
+                <div className="text-center">
+                  <Spinner animation="border" />
+                  <p className="mt-2">Loading 2FA settings...</p>
+                </div>
+              ) : (
+                <div>
+                  <Card>
+                    <Card.Body>
+                      <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                          <h6 className="mb-1">Two-Factor Authentication</h6>
+                          <small className="text-muted">
+                            Add an extra layer of security to your account
+                          </small>
+                        </div>
+                        <Badge bg={twoFAStatus.enabled ? 'success' : 'secondary'}>
+                          {twoFAStatus.enabled ? 'Enabled' : 'Disabled'}
+                        </Badge>
+                      </div>
+
+                      {twoFAStatus.enabled ? (
+                        <div>
+                          <p className="mb-3">
+                            <i className="bi bi-shield-check text-success me-2"></i>
+                            Two-factor authentication is currently enabled for your account.
+                          </p>
+
+                          <div className="mb-3">
+                            <small className="text-muted">
+                              Backup codes remaining: {twoFAStatus.backup_codes_remaining}
+                            </small>
+                          </div>
+
+                          <div className="d-grid gap-2 d-md-flex">
+                            <Button
+                              variant="outline-primary"
+                              size="sm"
+                              onClick={() => {
+                                setTwoFAPassword('');
+                                setShow2FADisable(true);
+                              }}
+                            >
+                              <i className="bi bi-shield-x me-2"></i>
+                              Disable 2FA
+                            </Button>
+                            <Button
+                              variant="outline-secondary"
+                              size="sm"
+                              onClick={() => {
+                                setTwoFAPassword('');
+                                setShowBackupCodes(true);
+                              }}
+                            >
+                              <i className="bi bi-key me-2"></i>
+                              Generate New Backup Codes
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="mb-3">
+                            Two-factor authentication is not enabled. We recommend enabling it to secure your account.
+                          </p>
+
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={handleSetup2FA}
+                            disabled={twoFALoading}
+                          >
+                            <i className="bi bi-shield-plus me-2"></i>
+                            Enable Two-Factor Authentication
+                          </Button>
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+
+                  <Card className="mt-3">
+                    <Card.Body>
+                      <h6>What is Two-Factor Authentication?</h6>
+                      <p className="mb-0 small text-muted">
+                        Two-factor authentication (2FA) adds an extra layer of security to your account.
+                        When enabled, you'll need to provide both your password and a time-based code from
+                        your authenticator app when logging in.
+                      </p>
+                    </Card.Body>
+                  </Card>
+                </div>
+              )}
+            </Tab>
+
+            {/* Account Management Tab */}
+            <Tab eventKey="account" title="Account Management">
+              {error && (
+                <Alert variant="danger" onClose={() => setError('')} dismissible>
+                  {error}
+                </Alert>
+              )}
+              {successMessage && (
+                <Alert variant="success" onClose={() => setSuccessMessage('')} dismissible>
+                  {successMessage}
+                </Alert>
+              )}
+
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <Card>
+                    <Card.Body>
+                      <h6 className="mb-3">
+                        <i className="bi bi-key me-2"></i>
+                        Change Password
+                      </h6>
+                      <p className="text-muted small mb-3">
+                        Update your account password to keep your account secure.
+                      </p>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => {
+                          setPasswordForm({
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          });
+                          setShowPasswordModal(true);
+                        }}
+                      >
+                        <i className="bi bi-shield-lock me-2"></i>
+                        Change Password
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </div>
+
+                <div className="col-md-6">
+                  <Card>
+                    <Card.Body>
+                      <h6 className="mb-3">
+                        <i className="bi bi-envelope me-2"></i>
+                        Update Email
+                      </h6>
+                      <p className="text-muted small mb-3">
+                        Current email: <strong>{user?.email}</strong>
+                      </p>
+                      <Button
+                        variant="outline-primary"
+                        size="sm"
+                        onClick={() => {
+                          setEmailForm({
+                            newEmail: user?.email || '',
+                            password: ''
+                          });
+                          setShowEmailModal(true);
+                        }}
+                      >
+                        <i className="bi bi-pencil me-2"></i>
+                        Update Email
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                </div>
+              </div>
+            </Tab>
+          </Tabs>
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowSecurityModal(false)}>
             Close
           </Button>
-          <Button variant="primary">
-            <i className="bi bi-shield-check me-2"></i>
-            Save Security Settings
+        </Modal.Footer>
+      </Modal>
+
+      {/* 2FA Setup Modal */}
+      <Modal show={show2FASetup} onHide={() => setShow2FASetup(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-shield-plus me-2"></i>
+            Setup Two-Factor Authentication
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="text-center mb-4">
+            <h6>Step 1: Scan QR Code</h6>
+            <p className="text-muted">
+              Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.)
+            </p>
+            {qrCodeURL && (
+              <div className="mb-3">
+                <img src={qrCodeURL} alt="QR Code" className="img-fluid" style={{maxWidth: '200px'}} />
+              </div>
+            )}
+            <p className="small text-muted">
+              Can't scan? Manual entry key: <code>{setupSecret}</code>
+            </p>
+          </div>
+
+          <div>
+            <h6>Step 2: Enter Verification Code</h6>
+            <p className="text-muted">
+              Enter the 6-digit code from your authenticator app to complete setup.
+            </p>
+            <Form.Group className="mb-3">
+              <Form.Label>Verification Code</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter 6-digit code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                maxLength={6}
+                className="text-center"
+                style={{fontSize: '1.2em', letterSpacing: '0.2em'}}
+              />
+            </Form.Group>
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow2FASetup(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={handleEnable2FA}
+            disabled={!verificationCode || verificationCode.length !== 6 || twoFALoading}
+          >
+            {twoFALoading ? <Spinner animation="border" size="sm" className="me-2" /> : null}
+            Enable 2FA
           </Button>
         </Modal.Footer>
+      </Modal>
+
+      {/* 2FA Disable Modal */}
+      <Modal show={show2FADisable} onHide={() => setShow2FADisable(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-shield-x me-2"></i>
+            Disable Two-Factor Authentication
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Alert variant="warning">
+            <i className="bi bi-exclamation-triangle me-2"></i>
+            <strong>Warning:</strong> Disabling 2FA will make your account less secure.
+          </Alert>
+
+          <Form.Group className="mb-3">
+            <Form.Label>Current Password</Form.Label>
+            <Form.Control
+              type="password"
+              placeholder="Enter your current password"
+              value={twoFAPassword}
+              onChange={(e) => setTwoFAPassword(e.target.value)}
+            />
+          </Form.Group>
+
+          <Form.Group className="mb-3">
+            <Form.Label>2FA Code (Optional)</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter 6-digit code from your authenticator app"
+              value={verificationCode}
+              onChange={(e) => setVerificationCode(e.target.value)}
+              maxLength={6}
+              className="text-center"
+            />
+            <Form.Text className="text-muted">
+              You can also use a backup code instead of the authenticator code.
+            </Form.Text>
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShow2FADisable(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDisable2FA}
+            disabled={!twoFAPassword || twoFALoading}
+          >
+            {twoFALoading ? <Spinner animation="border" size="sm" className="me-2" /> : null}
+            Disable 2FA
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Backup Codes Modal */}
+      <Modal show={showBackupCodes} onHide={() => setShowBackupCodes(false)} size="lg">
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-key me-2"></i>
+            Backup Codes
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {backupCodes.length > 0 ? (
+            <div>
+              <Alert variant="info">
+                <i className="bi bi-info-circle me-2"></i>
+                <strong>Important:</strong> Save these backup codes in a safe place. Each code can only be used once.
+              </Alert>
+
+              <div className="bg-light p-3 rounded mb-3">
+                <div className="row">
+                  {backupCodes.map((code, index) => (
+                    <div key={index} className="col-6 mb-2">
+                      <code className="d-block text-center p-2">{code}</code>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="d-grid gap-2 d-md-flex justify-content-md-end">
+                <Button variant="outline-secondary" onClick={copyBackupCodes}>
+                  <i className="bi bi-clipboard me-2"></i>
+                  Copy Codes
+                </Button>
+                <Button variant="outline-primary" onClick={downloadBackupCodes}>
+                  <i className="bi bi-download me-2"></i>
+                  Download Codes
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <p>Generate new backup codes to replace your existing ones.</p>
+
+              <Form.Group className="mb-3">
+                <Form.Label>Current Password</Form.Label>
+                <Form.Control
+                  type="password"
+                  placeholder="Enter your current password"
+                  value={twoFAPassword}
+                  onChange={(e) => setTwoFAPassword(e.target.value)}
+                />
+              </Form.Group>
+
+              <Button
+                variant="primary"
+                onClick={handleGenerateBackupCodes}
+                disabled={!twoFAPassword || twoFALoading}
+              >
+                {twoFALoading ? <Spinner animation="border" size="sm" className="me-2" /> : null}
+                Generate New Backup Codes
+              </Button>
+            </div>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => {
+            setShowBackupCodes(false);
+            setBackupCodes([]);
+            setTwoFAPassword('');
+          }}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Change Password Modal */}
+      <Modal show={showPasswordModal} onHide={() => setShowPasswordModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-key me-2"></i>
+            Change Password
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleChangePassword}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>Current Password *</Form.Label>
+              <Form.Control
+                type="password"
+                name="currentPassword"
+                value={passwordForm.currentPassword}
+                onChange={handlePasswordFormChange}
+                required
+                disabled={passwordLoading}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>New Password *</Form.Label>
+              <Form.Control
+                type="password"
+                name="newPassword"
+                value={passwordForm.newPassword}
+                onChange={handlePasswordFormChange}
+                required
+                disabled={passwordLoading}
+              />
+              <Form.Text className="text-muted">
+                Password must be at least 8 characters with uppercase, lowercase, number, and special character.
+              </Form.Text>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Confirm New Password *</Form.Label>
+              <Form.Control
+                type="password"
+                name="confirmPassword"
+                value={passwordForm.confirmPassword}
+                onChange={handlePasswordFormChange}
+                required
+                disabled={passwordLoading}
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowPasswordModal(false)} disabled={passwordLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={passwordLoading}>
+              {passwordLoading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Changing...
+                </>
+              ) : (
+                'Change Password'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
+      </Modal>
+
+      {/* Change Email Modal */}
+      <Modal show={showEmailModal} onHide={() => setShowEmailModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            <i className="bi bi-envelope me-2"></i>
+            Update Email Address
+          </Modal.Title>
+        </Modal.Header>
+        <Form onSubmit={handleChangeEmail}>
+          <Modal.Body>
+            <Form.Group className="mb-3">
+              <Form.Label>New Email Address *</Form.Label>
+              <Form.Control
+                type="email"
+                name="newEmail"
+                value={emailForm.newEmail}
+                onChange={handleEmailFormChange}
+                required
+                disabled={emailLoading}
+                placeholder="Enter new email address"
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password (for verification) *</Form.Label>
+              <Form.Control
+                type="password"
+                name="password"
+                value={emailForm.password}
+                onChange={handleEmailFormChange}
+                required
+                disabled={emailLoading}
+                placeholder="Enter your current password"
+              />
+            </Form.Group>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowEmailModal(false)} disabled={emailLoading}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={emailLoading}>
+              {emailLoading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Updating...
+                </>
+              ) : (
+                'Update Email'
+              )}
+            </Button>
+          </Modal.Footer>
+        </Form>
       </Modal>
     </Container>
   );

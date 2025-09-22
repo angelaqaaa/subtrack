@@ -51,9 +51,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (username, password, rememberMe = false) => {
+  const login = async (username, password, rememberMe = false, twoFactorCode = null) => {
     try {
-      const response = await authAPI.login(username, password);
+      let response;
+
+      if (twoFactorCode) {
+        // If 2FA code is provided, use the 2FA verification endpoint
+        response = await authAPI.verify2FALogin(username, password, twoFactorCode);
+      } else {
+        // Regular login attempt
+        response = await authAPI.login(username, password);
+      }
 
       if (response.status === 'success') {
         // Session is automatically managed by cookies, no need for localStorage
@@ -71,6 +79,14 @@ export const AuthProvider = ({ children }) => {
         }
 
         return { success: true };
+      } else if (response.status === 'requires_2fa') {
+        // 2FA is required
+        return {
+          success: false,
+          requires2FA: true,
+          userId: response.data.user_id,
+          error: 'Two-factor authentication required'
+        };
       } else {
         return {
           success: false,

@@ -11,6 +11,8 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [requires2FA, setRequires2FA] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -33,15 +35,29 @@ const Login = () => {
     setError('');
     setLoading(true);
 
-    const result = await login(formData.username, formData.password, formData.rememberMe);
+    const result = await login(
+      formData.username,
+      formData.password,
+      formData.rememberMe,
+      requires2FA ? twoFactorCode : null
+    );
 
     if (result.success) {
       navigate(from, { replace: true });
+    } else if (result.requires2FA) {
+      setRequires2FA(true);
+      setError('Please enter your two-factor authentication code');
     } else {
       setError(result.error);
     }
 
     setLoading(false);
+  };
+
+  const handleBackToCredentials = () => {
+    setRequires2FA(false);
+    setTwoFactorCode('');
+    setError('');
   };
 
   return (
@@ -62,49 +78,93 @@ const Login = () => {
             )}
 
             <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3">
-                <Form.Label>Username</Form.Label>
-                <Form.Control
-                  type="text"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                  placeholder="Enter your username"
-                />
-              </Form.Group>
+              {!requires2FA ? (
+                <>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Username</Form.Label>
+                    <Form.Control
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      placeholder="Enter your username"
+                    />
+                  </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Label>Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                  placeholder="Enter your password"
-                />
-              </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label>Password</Form.Label>
+                    <Form.Control
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                      placeholder="Enter your password"
+                    />
+                  </Form.Group>
 
-              <Form.Group className="mb-3">
-                <Form.Check
-                  type="checkbox"
-                  id="rememberMe"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleChange}
-                  label="Remember me"
-                  disabled={loading}
-                />
-              </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Check
+                      type="checkbox"
+                      id="rememberMe"
+                      name="rememberMe"
+                      checked={formData.rememberMe}
+                      onChange={handleChange}
+                      label="Remember me"
+                      disabled={loading}
+                    />
+                  </Form.Group>
+                </>
+              ) : (
+                <>
+                  <div className="mb-3">
+                    <p className="text-muted small mb-2">
+                      <i className="bi bi-shield-lock me-2"></i>
+                      Two-factor authentication is enabled for <strong>{formData.username}</strong>
+                    </p>
+                  </div>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label>Authentication Code</Form.Label>
+                    <Form.Control
+                      type="text"
+                      value={twoFactorCode}
+                      onChange={(e) => setTwoFactorCode(e.target.value)}
+                      required
+                      disabled={loading}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      className="text-center"
+                      style={{fontSize: '1.2em', letterSpacing: '0.2em'}}
+                    />
+                    <Form.Text className="text-muted">
+                      Enter the code from your authenticator app or use a backup code.
+                    </Form.Text>
+                  </Form.Group>
+
+                  <div className="mb-3">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={handleBackToCredentials}
+                      disabled={loading}
+                      className="p-0"
+                    >
+                      <i className="bi bi-arrow-left me-1"></i>
+                      Back to login
+                    </Button>
+                  </div>
+                </>
+              )}
 
               <Button
                 variant="primary"
                 type="submit"
                 className="w-100"
-                disabled={loading}
+                disabled={loading || (requires2FA && (!twoFactorCode || twoFactorCode.length < 6))}
               >
                 {loading ? (
                   <>
@@ -115,10 +175,10 @@ const Login = () => {
                       role="status"
                       className="me-2"
                     />
-                    Signing in...
+                    {requires2FA ? 'Verifying...' : 'Signing in...'}
                   </>
                 ) : (
-                  'Sign In'
+                  requires2FA ? 'Verify Code' : 'Sign In'
                 )}
               </Button>
             </Form>

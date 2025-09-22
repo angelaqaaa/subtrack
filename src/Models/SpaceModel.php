@@ -2,6 +2,7 @@
 
 class SpaceModel {
     private $pdo;
+    private $editorRoleSupported = null;
 
     public function __construct($database_connection) {
         $this->pdo = $database_connection;
@@ -77,6 +78,15 @@ class SpaceModel {
      * Add user to space with role
      */
     public function addUserToSpace($space_id, $user_id, $role, $invited_by, $auto_accept = false) {
+        if (!$this->ensureRoleIsSupported($role)) {
+            return false;
+        }
+
+        $allowed_roles = ['admin', 'editor', 'viewer'];
+        if (!in_array($role, $allowed_roles, true)) {
+            $role = 'viewer';
+        }
+
         $status = $auto_accept ? 'accepted' : 'pending';
         $accepted_at = $auto_accept ? date('Y-m-d H:i:s') : null;
 
@@ -89,8 +99,39 @@ class SpaceModel {
             $stmt->bindParam(3, $role, PDO::PARAM_STR);
             $stmt->bindParam(4, $invited_by, PDO::PARAM_INT);
             $stmt->bindParam(5, $status, PDO::PARAM_STR);
-            $stmt->bindParam(6, $accepted_at, PDO::PARAM_STR);
+            if ($accepted_at === null) {
+                $stmt->bindValue(6, null, PDO::PARAM_NULL);
+            } else {
+                $stmt->bindParam(6, $accepted_at, PDO::PARAM_STR);
+            }
 
+            return $stmt->execute();
+        }
+        return false;
+    }
+
+    /**
+     * Re-send an invitation by updating an existing declined membership
+     */
+    public function reinviteUser($space_id, $user_id, $role, $invited_by) {
+        if (!$this->ensureRoleIsSupported($role)) {
+            return false;
+        }
+
+        $allowed_roles = ['admin', 'editor', 'viewer'];
+        if (!in_array($role, $allowed_roles, true)) {
+            $role = 'viewer';
+        }
+
+        $sql = "UPDATE space_users
+                SET role = ?, invited_by = ?, status = 'pending', invited_at = NOW(), accepted_at = NULL
+                WHERE space_id = ? AND user_id = ?";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $role, PDO::PARAM_STR);
+            $stmt->bindParam(2, $invited_by, PDO::PARAM_INT);
+            $stmt->bindParam(3, $space_id, PDO::PARAM_INT);
+            $stmt->bindParam(4, $user_id, PDO::PARAM_INT);
             return $stmt->execute();
         }
         return false;
@@ -103,7 +144,7 @@ class SpaceModel {
         $sql = "SELECT su.*, u.username, u.email, inviter.username as invited_by_username
                 FROM space_users su
                 INNER JOIN users u ON su.user_id = u.id
-                INNER JOIN users inviter ON su.invited_by = inviter.id
+                LEFT JOIN users inviter ON su.invited_by = inviter.id
                 WHERE su.space_id = ?
                 ORDER BY su.role DESC, su.invited_at ASC";
 
@@ -145,6 +186,61 @@ class SpaceModel {
     }
 
     /**
+     * Determine if the database schema supports the editor role
+     */
+    public function supportsEditorRole() {
+        if ($this->editorRoleSupported !== null) {
+            return $this->editorRoleSupported;
+        }
+
+        $sql = "SELECT COLUMN_TYPE
+                FROM information_schema.COLUMNS
+                WHERE TABLE_SCHEMA = DATABASE()
+                  AND TABLE_NAME = 'space_users'
+                  AND COLUMN_NAME = 'role'";
+
+        if($stmt = $this->pdo->query($sql)) {
+            $columnType = $stmt->fetchColumn();
+            if (is_string($columnType)) {
+                $this->editorRoleSupported = stripos($columnType, "'editor'") !== false;
+                return $this->editorRoleSupported;
+            }
+        }
+
+        $this->editorRoleSupported = false;
+        return $this->editorRoleSupported;
+    }
+
+    /**
+     * Ensure the requested role exists in the database enum definition
+     */
+    private function ensureRoleIsSupported($role) {
+        if ($role !== 'editor') {
+            return true;
+        }
+
+        if ($this->supportsEditorRole()) {
+            return true;
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE space_users MODIFY COLUMN role ENUM('admin','editor','viewer') NOT NULL DEFAULT 'viewer'");
+            $this->editorRoleSupported = true;
+            return true;
+        } catch (Exception $e) {
+            error_log('Failed to add editor role to space_users table: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Public helper to make sure the editor role exists before performing operations
+     */
+    public function ensureEditorRoleSupport() {
+        return $this->ensureRoleIsSupported('editor');
+    }
+
+    /**
      * Find user by email for invitations
      */
     public function findUserByEmail($email) {
@@ -176,6 +272,15 @@ class SpaceModel {
      * Update user role in space
      */
     public function updateUserRole($space_id, $user_id, $new_role) {
+        if (!$this->ensureRoleIsSupported($new_role)) {
+            return false;
+        }
+
+        $allowed_roles = ['admin', 'editor', 'viewer'];
+        if (!in_array($new_role, $allowed_roles, true)) {
+            return false;
+        }
+
         $sql = "UPDATE space_users SET role = ? WHERE space_id = ? AND user_id = ?";
 
         if($stmt = $this->pdo->prepare($sql)) {

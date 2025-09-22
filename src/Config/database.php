@@ -1,8 +1,9 @@
 <?php
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'root'); // Replace with your DB username
-define('DB_PASSWORD', 'Lh0802420.'); // Replace with your DB password
-define('DB_NAME', 'subtrack_db');
+// Database configuration - use environment variables or set defaults
+define('DB_SERVER', $_ENV['DB_HOST'] ?? 'localhost');
+define('DB_USERNAME', $_ENV['DB_USER'] ?? 'root');
+define('DB_PASSWORD', $_ENV['DB_PASS'] ?? ''); // Set your DB password via environment variable
+define('DB_NAME', $_ENV['DB_NAME'] ?? 'subtrack_db');
 
 class Database {
     private $pdo;

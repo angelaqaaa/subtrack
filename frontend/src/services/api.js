@@ -25,12 +25,19 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't automatically redirect on 401 for auth checks - let components handle it
-    if (error.response?.status === 401 && !error.config?.url?.includes('current_user')) {
-      // Only redirect for non-auth-check 401 errors
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+    const isAuthEndpoint = requestUrl.includes('api_auth.php');
+    const isCurrentUserCheck = requestUrl.includes('current_user');
+    const isLoginHistoryCheck = requestUrl.includes('get_login_history');
+    const isSessionsCheck = requestUrl.includes('get_sessions');
+
+    // Don't redirect on auth endpoints, current user checks, or session/history checks when user is not logged in
+    if (status === 401 && !isCurrentUserCheck && !isAuthEndpoint && !isLoginHistoryCheck && !isSessionsCheck) {
       console.log('Unauthorized access detected, redirecting to login');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
@@ -63,6 +70,128 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     const response = await api.get('/api_auth.php?action=current_user');
+    return response.data;
+  },
+
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    const formData = new FormData();
+    formData.append('current_password', currentPassword);
+    formData.append('new_password', newPassword);
+    formData.append('confirm_password', confirmPassword);
+
+    const response = await api.post('/api_auth.php?action=change_password', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  changeEmail: async (newEmail, password) => {
+    const formData = new FormData();
+    formData.append('new_email', newEmail);
+    formData.append('password', password);
+
+    const response = await api.post('/api_auth.php?action=change_email', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  getLoginHistory: async (limit = 20) => {
+    const response = await api.get(`/api_auth.php?action=get_login_history&limit=${limit}`);
+    return response.data;
+  },
+
+  getSessions: async () => {
+    const response = await api.get('/api_auth.php?action=get_sessions');
+    return response.data;
+  },
+
+  logoutAllSessions: async () => {
+    const formData = new FormData();
+
+    const response = await api.post('/api_auth.php?action=logout_all_sessions', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  deleteAccount: async (password, confirmation) => {
+    const formData = new FormData();
+    formData.append('password', password);
+    formData.append('confirmation', confirmation);
+
+    const response = await api.post('/api_auth.php?action=delete_account', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  // 2FA Methods
+  setup2FA: async () => {
+    const response = await api.get('/api_auth.php?action=setup_2fa');
+    return response.data;
+  },
+
+  enable2FA: async (secret, verificationCode) => {
+    const formData = new FormData();
+    formData.append('secret', secret);
+    formData.append('verification_code', verificationCode);
+
+    const response = await api.post('/api_auth.php?action=enable_2fa', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  disable2FA: async (password, verificationCode = '') => {
+    const formData = new FormData();
+    formData.append('password', password);
+    if (verificationCode) {
+      formData.append('verification_code', verificationCode);
+    }
+
+    const response = await api.post('/api_auth.php?action=disable_2fa', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  get2FAStatus: async () => {
+    const response = await api.get('/api_auth.php?action=get_2fa_status');
+    return response.data;
+  },
+
+  generateBackupCodes: async (password) => {
+    const formData = new FormData();
+    formData.append('password', password);
+
+    const response = await api.post('/api_auth.php?action=generate_backup_codes', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  verify2FALogin: async (username, password, twoFactorCode) => {
+    const response = await api.post('/api_auth.php', {
+      action: 'verify_2fa_login',
+      username,
+      password,
+      two_factor_code: twoFactorCode
+    });
     return response.data;
   }
 };
@@ -121,6 +250,19 @@ export const subscriptionsAPI = {
     formData.append('is_active', isActive ? '1' : '0');
 
     const response = await api.post('/api_dashboard.php?action=toggle_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  updateCategory: async (oldCategoryName, newCategoryName) => {
+    const formData = new FormData();
+    formData.append('old_category_name', oldCategoryName);
+    formData.append('new_category_name', newCategoryName);
+
+    const response = await api.post('/api_dashboard.php?action=update_category', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

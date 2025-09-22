@@ -621,6 +621,36 @@ class SubscriptionModel {
         return false;
     }
 
+    /**
+     * Update category name across all user's subscriptions
+     */
+    public function updateCategoryName($user_id, $old_category_name, $new_category_name) {
+        $sql = "UPDATE subscriptions SET category = ? WHERE user_id = ? AND category = ?";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $new_category_name, PDO::PARAM_STR);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(3, $old_category_name, PDO::PARAM_STR);
+            return $stmt->execute();
+        }
+        return false;
+    }
+
+    /**
+     * Also update category name in space subscriptions
+     */
+    public function updateSpaceCategoryName($user_id, $old_category_name, $new_category_name) {
+        $sql = "UPDATE space_subscriptions SET category = ? WHERE added_by = ? AND category = ?";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $new_category_name, PDO::PARAM_STR);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(3, $old_category_name, PDO::PARAM_STR);
+            return $stmt->execute();
+        }
+        return false;
+    }
+
 
 }
 ?>
