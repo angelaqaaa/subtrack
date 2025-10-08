@@ -27,7 +27,7 @@ class DashboardController {
     public function index() {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: public/auth/login.php");
+            header("location: /public/auth/login.php");
             exit;
         }
 

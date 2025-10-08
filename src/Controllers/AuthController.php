@@ -66,7 +66,7 @@ class AuthController {
                     ]
                 );
 
-                header("location: public/auth/login.php?success=registered");
+                header("location: /public/auth/login.php?success=registered");
                 exit;
             } else {
                 $errors['general'] = "Registration failed. Please try again.";
@@ -89,7 +89,7 @@ class AuthController {
     public function showLogin() {
         // Redirect if already logged in
         if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-            header("location: routes/dashboard.php");
+            header("location: /routes/dashboard.php");
             exit;
         }
 
@@ -103,7 +103,7 @@ class AuthController {
     public function login() {
         // Redirect if already logged in
         if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-            header("location: routes/dashboard.php");
+            header("location: /routes/dashboard.php");
             exit;
         }
 
@@ -150,7 +150,7 @@ class AuthController {
                 $_SESSION["id"] = $user['id'];
                 $_SESSION["username"] = $user['username'];
 
-                header("location: routes/dashboard.php");
+                header("location: /routes/dashboard.php");
                 exit;
             } else {
                 $errors['general'] = "Invalid username or password.";
@@ -185,7 +185,7 @@ class AuthController {
 
         $_SESSION = array();
         session_destroy();
-        header("location: auth.php?action=login");
+        header("location: /public/auth/login.php");
         exit;
     }
 

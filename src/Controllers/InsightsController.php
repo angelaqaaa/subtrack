@@ -23,7 +23,7 @@ class InsightsController {
     public function dashboard() {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: public/auth/login.php");
+            header("location: /public/auth/login.php");
             exit;
         }
 
@@ -61,7 +61,7 @@ class InsightsController {
     public function educationLibrary() {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: public/auth/login.php");
+            header("location: /public/auth/login.php");
             exit;
         }
 
@@ -101,7 +101,7 @@ class InsightsController {
     public function viewEducationalContent($slug) {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: public/auth/login.php");
+            header("location: /public/auth/login.php");
             exit;
         }
 

@@ -15,7 +15,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="public/assets/js/dashboard-charts.js"></script>
-    <script src="public/assets/js/ajax-forms.js"></script>
+    <script src="/public/assets/js/dashboard-charts.js"></script>
+    <script src="/public/assets/js/ajax-forms.js"></script>
 </body>
 </html>
