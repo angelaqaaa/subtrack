@@ -2,11 +2,11 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: login.php");
+    header("location: ../auth/login.php");
     exit;
 }
 
-require_once "src/Config/database.php";
+require_once "../../src/Config/database.php";
 
 $service_name = $cost = $currency = $billing_cycle = $start_date = $end_date = $category = "";
 $service_name_err = $cost_err = $billing_cycle_err = $start_date_err = $end_date_err = "";
@@ -31,7 +31,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
                 $end_date = $row["end_date"];
                 $category = $row["category"];
             } else {
-                header("location: dashboard.php?error=not_found");
+                header("location: ../dashboard/index.php?error=not_found");
                 exit();
             }
         } else {
@@ -40,7 +40,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
     }
     unset($stmt);
 } else {
-    header("location: dashboard.php");
+    header("location: ../dashboard/index.php");
     exit();
 }
 
@@ -111,7 +111,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_user_id = $_SESSION["id"];
 
             if($stmt->execute()){
-                header("location: dashboard.php?success=updated");
+                header("location: ../dashboard/index.php?success=updated");
                 exit();
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
@@ -162,7 +162,7 @@ include "src/Views/layouts/header.php";
                                         <!-- Custom categories would need to be fetched here -->
                                         <?php
                                         // Fetch custom categories for this user
-                                        require_once 'src/Models/CategoryModel.php';
+                                        require_once '../../src/Models/CategoryModel.php';
                                         $categoryModel = new CategoryModel($pdo);
                                         $custom_categories = $categoryModel->getUserCategories($_SESSION["id"]);
 

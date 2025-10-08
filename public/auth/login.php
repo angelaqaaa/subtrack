@@ -2,7 +2,7 @@
 session_start();
 
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    header("location: dashboard.php");
+    header("location: ../dashboard/index.php");
     exit;
 }
 
@@ -11,7 +11,7 @@ $username = $password = "";
 $username_err = $password_err = $login_err = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    require_once "src/Config/database.php";
+    require_once "../../src/Config/database.php";
 
     $username = trim($_POST["username"]);
     $password = trim($_POST["password"]);
@@ -45,7 +45,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             $_SESSION["id"] = $id;
                             $_SESSION["username"] = $username;
 
-                            header("location: dashboard.php");
+                            header("location: ../dashboard/index.php");
                         } else{
                             $login_err = "Invalid username or password.";
                         }

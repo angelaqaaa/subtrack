@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Controllers/DashboardController.php';
+require_once '../src/Config/database.php';
+require_once '../src/Controllers/DashboardController.php';
 
 // Initialize controller
 $dashboardController = new DashboardController($pdo);

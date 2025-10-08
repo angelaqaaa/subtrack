@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Controllers/SpaceController.php';
+require_once '../src/Config/database.php';
+require_once '../src/Controllers/SpaceController.php';
 
 // Initialize controller
 $spaceController = new SpaceController($pdo);

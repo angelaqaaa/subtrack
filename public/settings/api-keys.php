@@ -6,7 +6,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
     exit;
 }
 
-require_once "src/Config/database.php";
+require_once "../../src/Config/database.php";
 
 $user_id = $_SESSION["id"];
 

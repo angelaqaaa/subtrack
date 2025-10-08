@@ -6,7 +6,7 @@ $username = $email = $password = $confirm_password = "";
 $username_err = $email_err = $password_err = $confirm_password_err = "";
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    require_once "src/Config/database.php";
+    require_once "../../src/Config/database.php";
 
     $username = trim($_POST["username"]);
     $email = trim($_POST["email"]);

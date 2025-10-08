@@ -3,14 +3,14 @@ session_start();
 
 // Check authentication
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-    header("location: login.php");
+    header("location: ../auth/login.php");
     exit;
 }
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Models/SubscriptionModel.php';
-require_once 'src/Config/csrf.php';
+require_once '../../src/Config/database.php';
+require_once '../../src/Models/SubscriptionModel.php';
+require_once '../../src/Config/csrf.php';
 
 // Initialize models
 $subscriptionModel = new SubscriptionModel($pdo);

@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Controllers/InvitationController.php';
+require_once '../src/Config/database.php';
+require_once '../src/Controllers/InvitationController.php';
 
 // Initialize controller
 $invitationController = new InvitationController($pdo);
