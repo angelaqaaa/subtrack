@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Clear previous error messages
             clearFormErrors(this);
 
-            fetch('dashboard_mvc.php?action=add', {
+            fetch('/routes/dashboard.php?action=add', {
                 method: 'POST',
                 body: formData
             })
@@ -124,7 +124,7 @@ document.addEventListener('DOMContentLoaded', function() {
             button.disabled = true;
             button.innerHTML = '<i class="bi bi-hourglass-split"></i>';
 
-            fetch(`dashboard_mvc.php?action=delete&id=${subscriptionId}`, {
+            fetch(`/routes/dashboard.php?action=delete&id=${subscriptionId}`, {
                 method: 'GET'
             })
             .then(response => response.json())

@@ -19,7 +19,7 @@
                     </small>
                 </div>
                 <div>
-                    <a href="dashboard_mvc.php" class="btn btn-outline-secondary me-2">
+                    <a href="/routes/dashboard.php" class="btn btn-outline-secondary me-2">
                         <i class="bi bi-arrow-left me-1"></i>Back to Personal
                     </a>
                     <?php if($space['user_role'] === 'admin'): ?>
@@ -512,7 +512,7 @@ document.getElementById('confirmQuitSpace')?.addEventListener('click', function(
     .then(data => {
         if (data.status === 'success') {
             // Redirect to dashboard
-            window.location.href = 'dashboard_mvc.php?success=quit_space';
+            window.location.href = '/routes/dashboard.php?success=quit_space';
         } else {
             alert('Error: ' + (data.message || 'Failed to quit space.'));
         }
