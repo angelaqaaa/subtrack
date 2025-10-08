@@ -25,8 +25,8 @@ ini_set('session.cookie_httponly', '1');
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Models/UserModel.php';
+require_once '../src/Config/database.php';
+require_once '../src/Models/UserModel.php';
 
 /**
  * Send JSON response

@@ -17,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Models/SubscriptionModel.php';
+require_once '../src/Config/database.php';
+require_once '../src/Models/SubscriptionModel.php';
 
 /**
  * API Response Helper
