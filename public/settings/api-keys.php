@@ -132,7 +132,7 @@ include "../../src/Views/layouts/header.php";
                             </button>
                         </form>
 
-                        <a href="dashboard_mvc.php" class="btn btn-secondary">
+                        <a href="/routes/dashboard.php" class="btn btn-secondary">
                             <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
                         </a>
                     </div>

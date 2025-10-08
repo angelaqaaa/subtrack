@@ -5,7 +5,7 @@
                 <h1 class="h2">
                     <i class="bi bi-clock-history me-2"></i>Subscription History
                 </h1>
-                <a href="dashboard_mvc.php" class="btn btn-outline-primary">
+                <a href="/routes/dashboard.php" class="btn btn-outline-primary">
                     <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
                 </a>
             </div>
@@ -349,7 +349,7 @@ document.getElementById('endSubscriptionForm').addEventListener('submit', functi
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Ending...';
 
-    fetch('dashboard_mvc.php?action=end_subscription', {
+    fetch('/routes/dashboard.php?action=end_subscription', {
         method: 'POST',
         body: formData
     })
@@ -386,7 +386,7 @@ document.getElementById('reactivateSubscriptionForm').addEventListener('submit',
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Reactivating...';
 
-    fetch('dashboard_mvc.php?action=reactivate_subscription', {
+    fetch('/routes/dashboard.php?action=reactivate_subscription', {
         method: 'POST',
         body: formData
     })
