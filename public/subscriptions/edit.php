@@ -125,7 +125,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
 }
 
 $page_title = "Edit Subscription";
-include "src/Views/layouts/header.php";
+include "../../src/Views/layouts/header.php";
 ?>
 
 <div class="container">
@@ -243,4 +243,4 @@ include "src/Views/layouts/header.php";
     </div>
 </div>
 
-<?php include "src/Views/layouts/footer.php"; ?>
+<?php include "../../src/Views/layouts/footer.php"; ?>
