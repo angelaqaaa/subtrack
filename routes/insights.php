@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Controllers/InsightsController.php';
+require_once '../src/Config/database.php';
+require_once '../src/Controllers/InsightsController.php';
 
 // Initialize controller
 $insightsController = new InsightsController($pdo);

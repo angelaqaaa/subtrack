@@ -27,7 +27,7 @@ api.interceptors.response.use(
   (error) => {
     const status = error.response?.status;
     const requestUrl = error.config?.url || '';
-    const isAuthEndpoint = requestUrl.includes('api_auth.php');
+    const isAuthEndpoint = requestUrl.includes('/api/auth.php');
     const isCurrentUserCheck = requestUrl.includes('current_user');
     const isLoginHistoryCheck = requestUrl.includes('get_login_history');
     const isSessionsCheck = requestUrl.includes('get_sessions');
@@ -45,7 +45,7 @@ api.interceptors.response.use(
 // Authentication API
 export const authAPI = {
   login: async (username, password) => {
-    const response = await api.post('/api_auth.php', {
+    const response = await api.post('/api/auth.php', {
       action: 'login',
       username,
       password
@@ -54,7 +54,7 @@ export const authAPI = {
   },
 
   register: async (userData) => {
-    const response = await api.post('/api_auth.php', {
+    const response = await api.post('/api/auth.php', {
       action: 'register',
       ...userData
     });
@@ -62,14 +62,14 @@ export const authAPI = {
   },
 
   logout: async () => {
-    const response = await api.post('/api_auth.php', {
+    const response = await api.post('/api/auth.php', {
       action: 'logout'
     });
     return response.data;
   },
 
   getCurrentUser: async () => {
-    const response = await api.get('/api_auth.php?action=current_user');
+    const response = await api.get('/api/auth.php?action=current_user');
     return response.data;
   },
 
@@ -79,7 +79,7 @@ export const authAPI = {
     formData.append('new_password', newPassword);
     formData.append('confirm_password', confirmPassword);
 
-    const response = await api.post('/api_auth.php?action=change_password', formData, {
+    const response = await api.post('/api/auth.php?action=change_password', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -92,7 +92,7 @@ export const authAPI = {
     formData.append('new_email', newEmail);
     formData.append('password', password);
 
-    const response = await api.post('/api_auth.php?action=change_email', formData, {
+    const response = await api.post('/api/auth.php?action=change_email', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -101,19 +101,19 @@ export const authAPI = {
   },
 
   getLoginHistory: async (limit = 20) => {
-    const response = await api.get(`/api_auth.php?action=get_login_history&limit=${limit}`);
+    const response = await api.get(`/api/auth.php?action=get_login_history&limit=${limit}`);
     return response.data;
   },
 
   getSessions: async () => {
-    const response = await api.get('/api_auth.php?action=get_sessions');
+    const response = await api.get('/api/auth.php?action=get_sessions');
     return response.data;
   },
 
   logoutAllSessions: async () => {
     const formData = new FormData();
 
-    const response = await api.post('/api_auth.php?action=logout_all_sessions', formData, {
+    const response = await api.post('/api/auth.php?action=logout_all_sessions', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -126,7 +126,7 @@ export const authAPI = {
     formData.append('password', password);
     formData.append('confirmation', confirmation);
 
-    const response = await api.post('/api_auth.php?action=delete_account', formData, {
+    const response = await api.post('/api/auth.php?action=delete_account', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -136,7 +136,7 @@ export const authAPI = {
 
   // 2FA Methods
   setup2FA: async () => {
-    const response = await api.get('/api_auth.php?action=setup_2fa');
+    const response = await api.get('/api/auth.php?action=setup_2fa');
     return response.data;
   },
 
@@ -145,7 +145,7 @@ export const authAPI = {
     formData.append('secret', secret);
     formData.append('verification_code', verificationCode);
 
-    const response = await api.post('/api_auth.php?action=enable_2fa', formData, {
+    const response = await api.post('/api/auth.php?action=enable_2fa', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -160,7 +160,7 @@ export const authAPI = {
       formData.append('verification_code', verificationCode);
     }
 
-    const response = await api.post('/api_auth.php?action=disable_2fa', formData, {
+    const response = await api.post('/api/auth.php?action=disable_2fa', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -169,7 +169,7 @@ export const authAPI = {
   },
 
   get2FAStatus: async () => {
-    const response = await api.get('/api_auth.php?action=get_2fa_status');
+    const response = await api.get('/api/auth.php?action=get_2fa_status');
     return response.data;
   },
 
@@ -177,7 +177,7 @@ export const authAPI = {
     const formData = new FormData();
     formData.append('password', password);
 
-    const response = await api.post('/api_auth.php?action=generate_backup_codes', formData, {
+    const response = await api.post('/api/auth.php?action=generate_backup_codes', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -186,7 +186,7 @@ export const authAPI = {
   },
 
   verify2FALogin: async (username, password, twoFactorCode) => {
-    const response = await api.post('/api_auth.php', {
+    const response = await api.post('/api/auth.php', {
       action: 'verify_2fa_login',
       username,
       password,
@@ -199,7 +199,7 @@ export const authAPI = {
 // Subscriptions API
 export const subscriptionsAPI = {
   getAll: async () => {
-    const response = await api.get('/api_dashboard.php?action=get_subscriptions');
+    const response = await api.get('/api/dashboard.php?action=get_subscriptions');
     return response.data;
   },
 
@@ -209,7 +209,7 @@ export const subscriptionsAPI = {
       formData.append(key, subscriptionData[key]);
     });
 
-    const response = await api.post('/api_dashboard.php?action=add_subscription', formData, {
+    const response = await api.post('/api/dashboard.php?action=add_subscription', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -224,7 +224,7 @@ export const subscriptionsAPI = {
       formData.append(key, subscriptionData[key]);
     });
 
-    const response = await api.post('/api_dashboard.php?action=update_subscription', formData, {
+    const response = await api.post('/api/dashboard.php?action=update_subscription', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -236,7 +236,7 @@ export const subscriptionsAPI = {
     const formData = new FormData();
     formData.append('subscription_id', id);
 
-    const response = await api.post('/api_dashboard.php?action=delete_subscription', formData, {
+    const response = await api.post('/api/dashboard.php?action=delete_subscription', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -249,7 +249,7 @@ export const subscriptionsAPI = {
     formData.append('subscription_id', id);
     formData.append('is_active', isActive ? '1' : '0');
 
-    const response = await api.post('/api_dashboard.php?action=toggle_subscription', formData, {
+    const response = await api.post('/api/dashboard.php?action=toggle_subscription', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -262,7 +262,7 @@ export const subscriptionsAPI = {
     formData.append('old_category_name', oldCategoryName);
     formData.append('new_category_name', newCategoryName);
 
-    const response = await api.post('/api_dashboard.php?action=update_category', formData, {
+    const response = await api.post('/api/dashboard.php?action=update_category', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -275,7 +275,7 @@ export const subscriptionsAPI = {
 export const spacesAPI = {
   getAll: async () => {
     try {
-      const response = await api.get('/api_spaces.php?action=get_all');
+      const response = await api.get('/api/spaces.php?action=get_all');
       return response.data;
     } catch (error) {
       console.error('Spaces API error:', error);
@@ -307,17 +307,17 @@ export const spacesAPI = {
   },
 
   create: async (spaceData) => {
-    const response = await api.post('/api_spaces.php?action=create', spaceData);
+    const response = await api.post('/api/spaces.php?action=create', spaceData);
     return response.data;
   },
 
   getMembers: async (spaceId) => {
-    const response = await api.get(`/api_spaces.php?action=get_members&space_id=${spaceId}`);
+    const response = await api.get(`/api/spaces.php?action=get_members&space_id=${spaceId}`);
     return response.data;
   },
 
   inviteUser: async (spaceId, email, role = 'viewer') => {
-    const response = await api.post('/api_spaces.php?action=invite', {
+    const response = await api.post('/api/spaces.php?action=invite', {
       space_id: spaceId,
       email,
       role
@@ -326,32 +326,32 @@ export const spacesAPI = {
   },
 
   removeMember: async (spaceId, memberId) => {
-    const response = await api.delete(`/api_spaces.php?action=remove_member&space_id=${spaceId}&member_id=${memberId}`);
+    const response = await api.delete(`/api/spaces.php?action=remove_member&space_id=${spaceId}&member_id=${memberId}`);
     return response.data;
   },
 
   leaveSpace: async (spaceId) => {
-    const response = await api.delete(`/api_spaces.php?action=quit&space_id=${spaceId}`);
+    const response = await api.delete(`/api/spaces.php?action=quit&space_id=${spaceId}`);
     return response.data;
   },
 
   getPendingInvitations: async () => {
-    const response = await api.get('/api_spaces.php?action=get_pending_invitations');
+    const response = await api.get('/api/spaces.php?action=get_pending_invitations');
     return response.data;
   },
 
   acceptInvitation: async (spaceId) => {
-    const response = await api.post(`/api_spaces.php?action=accept_invitation&space_id=${spaceId}`);
+    const response = await api.post(`/api/spaces.php?action=accept_invitation&space_id=${spaceId}`);
     return response.data;
   },
 
   rejectInvitation: async (spaceId) => {
-    const response = await api.delete(`/api_spaces.php?action=reject_invitation&space_id=${spaceId}`);
+    const response = await api.delete(`/api/spaces.php?action=reject_invitation&space_id=${spaceId}`);
     return response.data;
   },
 
   addSubscription: async (spaceId, subscriptionData) => {
-    const response = await api.post('/api_spaces.php?action=add_subscription', {
+    const response = await api.post('/api/spaces.php?action=add_subscription', {
       space_id: spaceId,
       service_name: subscriptionData.service_name,
       cost: subscriptionData.cost,
@@ -365,7 +365,7 @@ export const spacesAPI = {
   },
 
   syncExistingSubscriptions: async (spaceId, subscriptionIds) => {
-    const response = await api.post('/api_spaces.php?action=sync_subscriptions', {
+    const response = await api.post('/api/spaces.php?action=sync_subscriptions', {
       space_id: spaceId,
       subscription_ids: subscriptionIds
     });
@@ -373,12 +373,12 @@ export const spacesAPI = {
   },
 
   getSpaceSubscriptions: async (spaceId) => {
-    const response = await api.get(`/api_spaces.php?action=get_subscriptions&space_id=${spaceId}`);
+    const response = await api.get(`/api/spaces.php?action=get_subscriptions&space_id=${spaceId}`);
     return response.data;
   },
 
   updateMemberRole: async (spaceId, memberId, newRole) => {
-    const response = await api.put('/api_spaces.php?action=update_member_role', {
+    const response = await api.put('/api/spaces.php?action=update_member_role', {
       space_id: spaceId,
       member_id: memberId,
       new_role: newRole
@@ -387,7 +387,7 @@ export const spacesAPI = {
   },
 
   deleteSpace: async (spaceId) => {
-    const response = await api.delete(`/api_spaces.php?action=delete&space_id=${spaceId}`);
+    const response = await api.delete(`/api/spaces.php?action=delete&space_id=${spaceId}`);
     return response.data;
   }
 };
@@ -395,7 +395,7 @@ export const spacesAPI = {
 // Insights API
 export const insightsAPI = {
   getAll: async () => {
-    const response = await api.get('/api_dashboard.php?action=get_insights');
+    const response = await api.get('/api/dashboard.php?action=get_insights');
     return response.data;
   },
 
@@ -416,22 +416,22 @@ export const insightsAPI = {
 // External API (for API key access)
 export const externalAPI = {
   getSummary: async (apiKey) => {
-    const response = await api.get(`/api.php?endpoint=summary&api_key=${apiKey}`);
+    const response = await api.get(`/api/index.php?endpoint=summary&api_key=${apiKey}`);
     return response.data;
   },
 
   getSubscriptions: async (apiKey) => {
-    const response = await api.get(`/api.php?endpoint=subscriptions&api_key=${apiKey}`);
+    const response = await api.get(`/api/index.php?endpoint=subscriptions&api_key=${apiKey}`);
     return response.data;
   },
 
   getCategories: async (apiKey) => {
-    const response = await api.get(`/api.php?endpoint=categories&api_key=${apiKey}`);
+    const response = await api.get(`/api/index.php?endpoint=categories&api_key=${apiKey}`);
     return response.data;
   },
 
   getInsights: async (apiKey) => {
-    const response = await api.get(`/api.php?endpoint=insights&api_key=${apiKey}`);
+    const response = await api.get(`/api/index.php?endpoint=insights&api_key=${apiKey}`);
     return response.data;
   }
 };

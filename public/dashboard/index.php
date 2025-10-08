@@ -2,11 +2,11 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: login.php");
+    header("location: ../auth/login.php");
     exit;
 }
 
-require_once "src/Config/database.php";
+require_once "../../src/Config/database.php";
 
 // Fetch user subscriptions
 $sql = "SELECT * FROM subscriptions WHERE user_id = ? ORDER BY created_at DESC";

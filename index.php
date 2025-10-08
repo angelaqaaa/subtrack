@@ -2,7 +2,7 @@
 session_start();
 
 if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    header("location: dashboard.php");
+    header("location: public/dashboard/index.php");
     exit;
 }
 
@@ -27,8 +27,8 @@ $page_title = "Welcome to SubTrack";
                 <i class="bi bi-credit-card-2-front me-2"></i>SubTrack
             </a>
             <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="login.php">Login</a>
-                <a class="nav-link" href="register.php">Register</a>
+                <a class="nav-link" href="public/auth/login.php">Login</a>
+                <a class="nav-link" href="public/auth/register.php">Register</a>
             </div>
         </div>
     </nav>
@@ -46,10 +46,10 @@ $page_title = "Welcome to SubTrack";
                         Stop losing money on forgotten subscriptions and get insights into your spending patterns.
                     </p>
                     <div class="d-flex gap-3">
-                        <a href="register.php" class="btn btn-primary btn-lg">
+                        <a href="public/auth/register.php" class="btn btn-primary btn-lg">
                             <i class="bi bi-person-plus me-2"></i>Get Started Free
                         </a>
-                        <a href="login.php" class="btn btn-outline-primary btn-lg">
+                        <a href="public/auth/login.php" class="btn btn-outline-primary btn-lg">
                             <i class="bi bi-box-arrow-in-right me-2"></i>Login
                         </a>
                     </div>
@@ -172,7 +172,7 @@ $page_title = "Welcome to SubTrack";
                 <div class="col-12 text-center">
                     <h2 class="fw-bold mb-4">Ready to Take Control?</h2>
                     <p class="lead text-muted mb-4">Join thousands of users who have already started saving money with SubTrack.</p>
-                    <a href="register.php" class="btn btn-primary btn-lg px-5">
+                    <a href="public/auth/register.php" class="btn btn-primary btn-lg px-5">
                         <i class="bi bi-rocket-takeoff me-2"></i>Start Tracking Now
                     </a>
                 </div>

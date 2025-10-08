@@ -10,7 +10,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 if($_SERVER["REQUEST_METHOD"] == "POST"){
-    require_once "src/Config/database.php";
+    require_once "../../src/Config/database.php";
 
     $service_name = trim($_POST["service_name"]);
     $cost = trim($_POST["cost"]);

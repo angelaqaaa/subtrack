@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Controllers/AuthController.php';
+require_once '../src/Config/database.php';
+require_once '../src/Controllers/AuthController.php';
 
 // Initialize controller
 $authController = new AuthController($pdo);

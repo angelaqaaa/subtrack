@@ -2,11 +2,11 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: login.php");
+    header("location: ../auth/login.php");
     exit;
 }
 
-require_once "src/Config/database.php";
+require_once "../../src/Config/database.php";
 
 // Set default date range (last 12 months)
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');

@@ -10,7 +10,7 @@ if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
 }
 
 if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
-    require_once "src/Config/database.php";
+    require_once "../../src/Config/database.php";
 
     $subscription_id = trim($_GET["id"]);
     $user_id = $_SESSION["id"];
