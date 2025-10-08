@@ -36,10 +36,10 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 }
 
 // Include required files
-require_once 'src/Config/database.php';
-require_once 'src/Models/SubscriptionModel.php';
-require_once 'src/Models/SpaceModel.php';
-require_once 'src/Models/InsightsModel.php';
+require_once '../src/Config/database.php';
+require_once '../src/Models/SubscriptionModel.php';
+require_once '../src/Models/SpaceModel.php';
+require_once '../src/Models/InsightsModel.php';
 
 /**
  * Send JSON response
