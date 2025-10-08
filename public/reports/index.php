@@ -77,7 +77,7 @@ if($stmt = $pdo->prepare($historical_sql)){
 }
 
 $page_title = "Reports & Analytics";
-include "src/Views/layouts/header.php";
+include "../../src/Views/layouts/header.php";
 ?>
 
 <div class="container">
@@ -275,4 +275,4 @@ include "src/Views/layouts/header.php";
     </div>
 </div>
 
-<?php include "src/Views/layouts/footer.php"; ?>
+<?php include "../../src/Views/layouts/footer.php"; ?>

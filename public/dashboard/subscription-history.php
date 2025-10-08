@@ -46,7 +46,7 @@ $view_data = [
 ];
 
 // Load view
-include 'src/Views/layouts/header.php';
-include 'src/Views/dashboard/subscription-history.php';
-include 'src/Views/layouts/footer.php';
+include '../../src/Views/layouts/header.php';
+include '../../src/Views/dashboard/subscription-history.php';
+include '../../src/Views/layouts/footer.php';
 ?>

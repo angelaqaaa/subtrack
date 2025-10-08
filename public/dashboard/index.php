@@ -41,7 +41,7 @@ if($stmt = $pdo->prepare($sql)){
 }
 
 $page_title = "Dashboard";
-include "src/Views/layouts/header.php";
+include "../../src/Views/layouts/header.php";
 ?>
 
 <div class="container">
@@ -327,4 +327,4 @@ include "src/Views/layouts/header.php";
     </div>
 </div>
 
-<?php include "src/Views/layouts/footer.php"; ?>
+<?php include "../../src/Views/layouts/footer.php"; ?>

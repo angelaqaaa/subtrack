@@ -45,7 +45,7 @@ if($stmt = $pdo->prepare($sql)){
 }
 
 $page_title = "API Key Management";
-include "src/Views/layouts/header.php";
+include "../../src/Views/layouts/header.php";
 ?>
 
 <div class="container">
@@ -174,4 +174,4 @@ function copyApiKey() {
 }
 </script>
 
-<?php include "src/Views/layouts/footer.php"; ?>
+<?php include "../../src/Views/layouts/footer.php"; ?>
