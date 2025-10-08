@@ -29,7 +29,7 @@ class SpaceController {
     public function viewSpace($space_id) {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: public/auth/login.php");
+            header("location: /public/auth/login.php");
             exit;
         }
 
@@ -38,7 +38,7 @@ class SpaceController {
         // Get space details and verify access
         $space = $this->spaceModel->getSpaceWithUserRole($space_id, $user_id);
         if(!$space) {
-            header("location: routes/dashboard.php?error=space_access_denied");
+            header("location: /routes/dashboard.php?error=space_access_denied");
             exit;
         }
 
