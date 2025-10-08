@@ -53,6 +53,12 @@ ehthumbs.db
 
 # Test results (exclude personal test results)
 TEST_RESULTS.md
+tests/debug_*.php
+tests/test_*.php
+dev-tools/
 
 # Cookies and session files
 cookies.txt
+
+# Frontend environment file (contains actual configuration)
+frontend/.env
