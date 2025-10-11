@@ -36,6 +36,21 @@ switch($action) {
         $spaceController->addSpaceSubscription();
         exit;
 
+    case 'edit_subscription':
+        // This is a form endpoint
+        $spaceController->editSpaceSubscription();
+        break;
+
+    case 'end_subscription':
+        // This is a JSON endpoint - exit immediately after
+        $spaceController->endSpaceSubscription();
+        exit;
+
+    case 'reactivate_subscription':
+        // This is a JSON endpoint - exit immediately after
+        $spaceController->reactivateSpaceSubscription();
+        exit;
+
     case 'quit':
         // This is a JSON endpoint - exit immediately after
         $spaceController->quitSpace();

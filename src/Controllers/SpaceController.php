@@ -387,6 +387,156 @@ class SpaceController {
     /**
      * Load view file
      */
+    /**
+     * Edit space subscription
+     */
+    public function editSpaceSubscription() {
+        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            header("location: /routes/auth.php?action=login");
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] !== "POST") {
+            header("location: /routes/dashboard.php");
+            exit;
+        }
+
+        // Verify CSRF token
+        if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
+            header("location: /routes/dashboard.php?error=invalid_token");
+            exit;
+        }
+
+        $user_id = $_SESSION["id"];
+        $space_id = $_POST["space_id"] ?? null;
+        $subscription_id = $_POST["subscription_id"] ?? null;
+
+        if(!$space_id || !$subscription_id) {
+            header("location: /routes/dashboard.php?error=missing_data");
+            exit;
+        }
+
+        // Verify user is admin of this space
+        $space = $this->spaceModel->getSpaceWithUserRole($space_id, $user_id);
+        if(!$space || $space['user_role'] !== 'admin') {
+            header("location: /routes/dashboard.php?error=unauthorized");
+            exit;
+        }
+
+        // Update subscription
+        $success = $this->subscriptionModel->updateSubscription($subscription_id, [
+            'service_name' => $_POST["service_name"],
+            'cost' => $_POST["cost"],
+            'currency' => $_POST["currency"] ?? 'USD',
+            'billing_cycle' => $_POST["billing_cycle"],
+            'start_date' => $_POST["start_date"],
+            'end_date' => isset($_POST["end_date"]) && !empty(trim($_POST["end_date"])) ? trim($_POST["end_date"]) : null,
+            'category' => $_POST["category"] ?? null
+        ]);
+
+        if($success) {
+            header("location: /routes/space.php?action=view&space_id={$space_id}&success=subscription_updated");
+        } else {
+            header("location: /routes/space.php?action=view&space_id={$space_id}&error=update_failed");
+        }
+    }
+
+    /**
+     * End space subscription (mark as inactive)
+     */
+    public function endSpaceSubscription() {
+        header('Content-Type: application/json');
+
+        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+            exit;
+        }
+
+        // Verify CSRF token
+        if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid CSRF token']);
+            exit;
+        }
+
+        $user_id = $_SESSION["id"];
+        $space_id = $_POST["space_id"] ?? null;
+        $subscription_id = $_POST["subscription_id"] ?? null;
+
+        if(!$space_id || !$subscription_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing required data']);
+            exit;
+        }
+
+        // Verify user is admin of this space
+        $space = $this->spaceModel->getSpaceWithUserRole($space_id, $user_id);
+        if(!$space || $space['user_role'] !== 'admin') {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        // End subscription
+        $success = $this->subscriptionModel->endSubscription($subscription_id);
+
+        if($success) {
+            echo json_encode(['status' => 'success', 'message' => 'Subscription ended successfully']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to end subscription']);
+        }
+    }
+
+    /**
+     * Reactivate space subscription
+     */
+    public function reactivateSpaceSubscription() {
+        header('Content-Type: application/json');
+
+        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+            exit;
+        }
+
+        // Verify CSRF token
+        if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid CSRF token']);
+            exit;
+        }
+
+        $user_id = $_SESSION["id"];
+        $space_id = $_POST["space_id"] ?? null;
+        $subscription_id = $_POST["subscription_id"] ?? null;
+
+        if(!$space_id || !$subscription_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Missing required data']);
+            exit;
+        }
+
+        // Verify user is admin of this space
+        $space = $this->spaceModel->getSpaceWithUserRole($space_id, $user_id);
+        if(!$space || $space['user_role'] !== 'admin') {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        // Reactivate subscription
+        $success = $this->subscriptionModel->reactivateSubscription($subscription_id);
+
+        if($success) {
+            echo json_encode(['status' => 'success', 'message' => 'Subscription reactivated successfully']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to reactivate subscription']);
+        }
+    }
+
     private function loadView($view_name, $data = []) {
         // Extract data to variables
         extract($data);

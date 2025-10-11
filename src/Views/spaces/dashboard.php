@@ -138,13 +138,19 @@
                                 </tr>
                                 <?php else: ?>
                                     <?php foreach($subscriptions as $subscription): ?>
-                                    <tr>
+                                    <tr class="<?php echo (!$subscription['is_active']) ? 'table-secondary' : ''; ?>">
                                         <td>
                                             <strong><?php echo htmlspecialchars($subscription['service_name']); ?></strong>
                                             <br><small class="text-muted">Started: <?php echo date('M d, Y', strtotime($subscription['start_date'])); ?></small>
+                                            <?php if (!$subscription['is_active'] && $subscription['end_date']): ?>
+                                                <br><small class="text-danger">Ended: <?php echo date('M d, Y', strtotime($subscription['end_date'])); ?></small>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <strong><?php echo $subscription['currency']; ?> <?php echo number_format($subscription['cost'], 2); ?></strong>
+                                            <?php if (!$subscription['is_active']): ?>
+                                                <br><small class="text-muted">(Not counted)</small>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <span class="badge <?php echo $subscription['billing_cycle'] == 'monthly' ? 'bg-primary' : 'bg-success'; ?>">
@@ -159,9 +165,36 @@
                                         </td>
                                         <?php if($space['user_role'] === 'admin'): ?>
                                         <td>
-                                            <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn" data-id="<?php echo $subscription['id']; ?>">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button type="button" class="btn btn-outline-primary btn-sm edit-subscription-btn"
+                                                        data-id="<?php echo $subscription['id']; ?>"
+                                                        data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>"
+                                                        data-cost="<?php echo $subscription['cost']; ?>"
+                                                        data-currency="<?php echo $subscription['currency']; ?>"
+                                                        data-billing="<?php echo $subscription['billing_cycle']; ?>"
+                                                        data-category="<?php echo htmlspecialchars($subscription['category']); ?>"
+                                                        data-start="<?php echo $subscription['start_date']; ?>"
+                                                        data-end="<?php echo $subscription['end_date'] ?: ''; ?>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <?php if ($subscription['is_active']): ?>
+                                                    <button type="button" class="btn btn-outline-warning btn-sm end-subscription-btn"
+                                                            data-id="<?php echo $subscription['id']; ?>"
+                                                            data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
+                                                        <i class="bi bi-pause-circle"></i>
+                                                    </button>
+                                                <?php else: ?>
+                                                    <button type="button" class="btn btn-outline-success btn-sm reactivate-subscription-btn"
+                                                            data-id="<?php echo $subscription['id']; ?>"
+                                                            data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
+                                                        <i class="bi bi-play-circle"></i>
+                                                    </button>
+                                                <?php endif; ?>
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn"
+                                                        data-id="<?php echo $subscription['id']; ?>">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
                                         </td>
                                         <?php endif; ?>
                                     </tr>
@@ -368,6 +401,87 @@
     </div>
 </div>
 
+<!-- Edit Subscription Modal (Admin Only) -->
+<?php if($space['user_role'] === 'admin'): ?>
+<div class="modal fade" id="editSubscriptionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Subscription</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/routes/space.php?action=edit_subscription" method="post">
+                <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
+                <input type="hidden" name="space_id" value="<?php echo $space['id']; ?>">
+                <input type="hidden" name="subscription_id" id="edit_subscription_id">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="edit_service_name" class="form-label">Service Name *</label>
+                        <input type="text" class="form-control" id="edit_service_name" name="service_name" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_cost" class="form-label">Cost *</label>
+                            <input type="number" class="form-control" id="edit_cost" name="cost" step="0.01" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_currency" class="form-label">Currency</label>
+                            <select class="form-control" id="edit_currency" name="currency">
+                                <option value="USD">USD</option>
+                                <option value="EUR">EUR</option>
+                                <option value="GBP">GBP</option>
+                                <option value="CAD">CAD</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_billing_cycle" class="form-label">Billing Cycle *</label>
+                        <select class="form-control" id="edit_billing_cycle" name="billing_cycle" required>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_start_date" class="form-label">Start Date *</label>
+                            <input type="date" class="form-control" id="edit_start_date" name="start_date" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_end_date" class="form-label">End Date (Optional)</label>
+                            <input type="date" class="form-control" id="edit_end_date" name="end_date">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_category" class="form-label">Category</label>
+                        <select class="form-control" id="edit_category" name="category">
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Productivity">Productivity</option>
+                            <option value="Health & Fitness">Health & Fitness</option>
+                            <option value="News & Media">News & Media</option>
+                            <option value="Cloud Storage">Cloud Storage</option>
+                            <option value="Other">Other</option>
+                            <?php if (!empty($custom_categories)): ?>
+                                <optgroup label="Custom Categories">
+                                    <?php foreach ($custom_categories as $category): ?>
+                                        <option value="<?php echo htmlspecialchars($category['name']); ?>">
+                                            <?php echo htmlspecialchars($category['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            <?php endif; ?>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Subscription</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Invite User Modal -->
 <div class="modal fade" id="inviteUserModal" tabindex="-1">
@@ -624,6 +738,100 @@ document.getElementById('inviteUserForm')?.addEventListener('submit', function(e
         // Reset button state
         submitButton.disabled = false;
         submitButton.innerHTML = originalButtonText;
+    });
+});
+
+// Handle edit subscription button
+document.querySelectorAll('.edit-subscription-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+        const cost = this.dataset.cost;
+        const currency = this.dataset.currency;
+        const billing = this.dataset.billing;
+        const category = this.dataset.category;
+        const start = this.dataset.start;
+        const end = this.dataset.end;
+
+        // Populate modal fields
+        document.getElementById('edit_subscription_id').value = id;
+        document.getElementById('edit_service_name').value = name;
+        document.getElementById('edit_cost').value = cost;
+        document.getElementById('edit_currency').value = currency;
+        document.getElementById('edit_billing_cycle').value = billing;
+        document.getElementById('edit_category').value = category || 'Other';
+        document.getElementById('edit_start_date').value = start;
+        document.getElementById('edit_end_date').value = end || '';
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('editSubscriptionModal'));
+        modal.show();
+    });
+});
+
+// Handle end subscription button
+document.querySelectorAll('.end-subscription-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+
+        if (confirm(`Are you sure you want to end the subscription for "${name}"?`)) {
+            const formData = new FormData();
+            formData.append('subscription_id', id);
+            formData.append('csrf_token', '<?php echo htmlspecialchars($csrf_token); ?>');
+            formData.append('space_id', '<?php echo $space['id']; ?>');
+
+            fetch('/routes/space.php?action=end_subscription', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('success', data.message);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'An error occurred');
+            });
+        }
+    });
+});
+
+// Handle reactivate subscription button
+document.querySelectorAll('.reactivate-subscription-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const name = this.dataset.name;
+
+        if (confirm(`Are you sure you want to reactivate the subscription for "${name}"?`)) {
+            const formData = new FormData();
+            formData.append('subscription_id', id);
+            formData.append('csrf_token', '<?php echo htmlspecialchars($csrf_token); ?>');
+            formData.append('space_id', '<?php echo $space['id']; ?>');
+
+            fetch('/routes/space.php?action=reactivate_subscription', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('success', data.message);
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    showNotification('error', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('error', 'An error occurred');
+            });
+        }
     });
 });
 
