@@ -325,16 +325,6 @@ npm test -- --watch
 npm test -- --coverage
 ```
 
-### Manual Testing Checklist
-- [ ] User registration and login
-- [ ] Two-factor authentication setup and verification
-- [ ] Subscription CRUD operations
-- [ ] Space creation and invitation workflow
-- [ ] Role-based access control
-- [ ] PDF report generation
-- [ ] Dashboard analytics and charts
-- [ ] Session timeout and security
-
 ## 🐛 Troubleshooting
 
 ### Common Issues
@@ -384,33 +374,6 @@ npm install
 - **PHP Errors**: `logs/api_dashboard.log` (or check PHP error_log)
 - **React Console**: Browser DevTools Console
 - **Audit Logs**: Database `audit_logs` table
-
-## 🚀 Deployment
-
-### Production Checklist
-- [ ] Run `npm run build` for React production bundle
-- [ ] Configure web server to serve `frontend/build` directory
-- [ ] Update CORS headers to production domain
-- [ ] Set `session.cookie_secure = 1` for HTTPS
-- [ ] Change `DB_HOST` to production database server
-- [ ] Set strong `CSRF_SECRET` value
-- [ ] Configure `MAIL_*` settings for email functionality
-- [ ] Enable error logging, disable `display_errors`
-- [ ] Set up SSL certificate for HTTPS
-- [ ] Configure automated database backups
-- [ ] Set up audit log retention policy
-- [ ] Test all features in production environment
-
-### Environment Variables
-**.env (Backend)**
-```env
-DB_HOST=localhost
-DB_NAME=subtrack_db
-DB_USER=your_username
-DB_PASS=your_password
-CSRF_SECRET=your_random_secret_key
-FRONTEND_URL=http://localhost:3000
-```
 
 **frontend/.env.local (Frontend)**
 ```env
