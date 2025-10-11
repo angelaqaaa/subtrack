@@ -407,7 +407,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions, issues, or contributions:
 - **GitHub Issues**: [Report bugs or request features](https://github.com/angelaqaaa/subtrack/issues)
 - **Documentation**: See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture
-- **Development**: See [CLAUDE.md](CLAUDE.md) for development guidelines
 - **Security Issues**: Please report privately via GitHub Security Advisories
 
 ## 🌟 Acknowledgments
