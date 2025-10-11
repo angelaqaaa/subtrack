@@ -375,11 +375,6 @@ npm install
 - **React Console**: Browser DevTools Console
 - **Audit Logs**: Database `audit_logs` table
 
-**frontend/.env.local (Frontend)**
-```env
-REACT_APP_API_URL=http://localhost:8000
-```
-
 ## 🤝 Contributing
 
 ### Development Workflow
