@@ -162,13 +162,17 @@
                                         </td>
                                         <td>
                                             <?php echo date('M d, Y', strtotime($sub['start_date'])); ?>
-                                            <br><small class="text-danger">to <?php echo date('M d, Y', strtotime($sub['end_date'])); ?></small>
-                                            <?php
-                                            $start = new DateTime($sub['start_date']);
-                                            $end = new DateTime($sub['end_date']);
-                                            $duration = $start->diff($end);
-                                            ?>
-                                            <br><small class="text-muted"><?php echo $duration->format('%a days'); ?></small>
+                                            <?php if ($sub['end_date']): ?>
+                                                <br><small class="text-danger">to <?php echo date('M d, Y', strtotime($sub['end_date'])); ?></small>
+                                                <?php
+                                                $start = new DateTime($sub['start_date']);
+                                                $end = new DateTime($sub['end_date']);
+                                                $duration = $start->diff($end);
+                                                ?>
+                                                <br><small class="text-muted"><?php echo $duration->format('%a days'); ?></small>
+                                            <?php else: ?>
+                                                <br><small class="text-muted">No end date</small>
+                                            <?php endif; ?>
                                         </td>
                                         <td>
                                             <button type="button" class="btn btn-outline-success btn-sm reactivate-subscription-btn" data-id="<?php echo $sub['id']; ?>" data-name="<?php echo htmlspecialchars($sub['service_name']); ?>">

@@ -161,7 +161,7 @@
                                             <span class="badge bg-secondary"><?php echo htmlspecialchars($subscription['category'] ?: 'Other'); ?></span>
                                         </td>
                                         <td>
-                                            <small class="text-muted"><?php echo htmlspecialchars($subscription['created_by']); ?></small>
+                                            <small class="text-muted"><?php echo htmlspecialchars($subscription['created_by'] ?? 'Unknown'); ?></small>
                                         </td>
                                         <?php if($space['user_role'] === 'admin'): ?>
                                         <td>
