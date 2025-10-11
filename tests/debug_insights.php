@@ -2,10 +2,10 @@
 session_start();
 
 // Include required files
-require_once 'config/database.php';
-require_once 'models/InsightsModel.php';
-require_once 'utils/AuditLogger.php';
-require_once 'config/csrf.php';
+require_once __DIR__ . '/../src/Config/database.php';
+require_once __DIR__ . '/../src/Models/InsightsModel.php';
+require_once __DIR__ . '/../src/Utils/AuditLogger.php';
+require_once __DIR__ . '/../src/Config/csrf.php';
 
 echo "<h1>Insight Dismiss Debug</h1>";
 

@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'config/database.php';
-require_once 'models/InsightsModel.php';
+require_once __DIR__ . '/../src/Config/database.php';
+require_once __DIR__ . '/../src/Models/InsightsModel.php';
 
 echo "<h1>Phase 11: Financial Insights & Educational Content - Testing</h1>";
 
