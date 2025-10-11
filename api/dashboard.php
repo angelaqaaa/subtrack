@@ -69,7 +69,8 @@ try {
 
     switch ($action) {
         case 'get_subscriptions':
-            $subscriptions = $subscriptionModel->getSubscriptionsByUser($user_id);
+            // Get all subscriptions including those from spaces the user is a member of
+            $subscriptions = $subscriptionModel->getAllSubscriptionsWithSpaces($user_id);
             sendResponse('success', 'Subscriptions retrieved successfully', [
                 'subscriptions' => $subscriptions
             ]);
