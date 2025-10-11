@@ -2,7 +2,7 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: ../auth/login.php");
+    header("location: /public/auth/login.php");
     exit;
 }
 
@@ -172,7 +172,7 @@ include "../../src/Views/layouts/header.php";
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="edit_subscription.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                <a href="/public/subscriptions/edit.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn" data-id="<?php echo $subscription['id']; ?>">
@@ -267,7 +267,7 @@ include "../../src/Views/layouts/header.php";
                 <h5 class="modal-title">Add New Subscription</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="add_subscription.php" method="post">
+            <form action="/public/subscriptions/add.php" method="post">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="service_name" class="form-label">Service Name</label>

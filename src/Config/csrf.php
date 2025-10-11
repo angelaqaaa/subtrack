@@ -57,14 +57,24 @@ class CSRFHandler {
     }
 
     /**
-     * Get the current CSRF token from session
+     * Get the current CSRF token from session, or generate one if it doesn't exist
      */
     public function getToken() {
         if(!isset($_SESSION)) {
             session_start();
         }
 
-        return $_SESSION['csrf_token'] ?? null;
+        // If no token exists or it's expired, generate a new one
+        if(!isset($_SESSION['csrf_token']) || !isset($_SESSION['csrf_token_time'])) {
+            return $this->generateToken();
+        }
+
+        // Check if token is expired (after 1 hour)
+        if((time() - $_SESSION['csrf_token_time']) > 3600) {
+            return $this->generateToken();
+        }
+
+        return $_SESSION['csrf_token'];
     }
 
     /**

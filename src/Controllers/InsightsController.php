@@ -39,7 +39,7 @@ class InsightsController {
         $achievements = $this->insightsModel->getUserAchievements($user_id);
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
@@ -80,7 +80,7 @@ class InsightsController {
         ];
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
@@ -110,23 +110,30 @@ class InsightsController {
         // Get content
         $content = $this->insightsModel->getEducationalContentBySlug($slug);
         if (!$content) {
-            header("location: insights.php?action=education&error=content_not_found");
+            header("location: /routes/insights.php?action=education&error=content_not_found");
             exit;
         }
 
-        // Track user started reading
-        $this->insightsModel->updateEducationalProgress($user_id, $content['id'], 'started');
+        // Get user progress for this content
+        $user_progress = $this->insightsModel->getUserEducationalProgress($user_id, $content['id']);
+
+        // Track user started reading (only if not already tracked)
+        if (!$user_progress) {
+            $this->insightsModel->updateEducationalProgress($user_id, $content['id'], 'started');
+            $user_progress = ['status' => 'started', 'progress_percent' => 0];
+        }
 
         // Get related content
         $related_content = $this->insightsModel->getEducationalContent($content['category'], false, 3);
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
             'content' => $content,
             'related_content' => $related_content,
+            'user_progress' => $user_progress,
             'csrf_token' => $csrf_token,
             'page_title' => $content['title']
         ];
@@ -139,6 +146,11 @@ class InsightsController {
      * Handle insight actions (dismiss, apply)
      */
     public function handleInsightAction() {
+        // Clean any previous output
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
         header('Content-Type: application/json');
 
         // Check authentication
@@ -230,6 +242,7 @@ class InsightsController {
             'status' => $success ? 'success' : 'error',
             'message' => $message
         ]);
+        exit;
     }
 
     /**
@@ -291,6 +304,11 @@ class InsightsController {
      * Mark educational content as completed
      */
     public function markContentCompleted() {
+        // Clean any previous output
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
         header('Content-Type: application/json');
 
         // Check authentication
@@ -321,33 +339,43 @@ class InsightsController {
         $success = $this->insightsModel->updateEducationalProgress($user_id, $content_id, 'completed', 100);
 
         if ($success) {
-            // Award achievement if first completion
-            $achievements = $this->insightsModel->getUserAchievements($user_id);
-            $has_achievement = false;
-            foreach ($achievements as $achievement) {
-                if ($achievement['achievement_type'] === 'first_subscription') {
-                    $has_achievement = true;
-                    break;
+            // Award achievement if first completion (wrapped in try-catch for safety)
+            try {
+                $achievements = $this->insightsModel->getUserAchievements($user_id);
+                $has_achievement = false;
+                foreach ($achievements as $achievement) {
+                    if ($achievement['achievement_type'] === 'first_subscription') {
+                        $has_achievement = true;
+                        break;
+                    }
                 }
+
+                if (!$has_achievement) {
+                    $this->insightsModel->awardAchievement(
+                        $user_id,
+                        'first_subscription',
+                        'Learning Starter',
+                        'Completed your first educational article!',
+                        ['content_id' => $content_id]
+                    );
+                }
+            } catch (Exception $e) {
+                // Log but don't fail if achievements system has issues
+                error_log("Achievement award failed: " . $e->getMessage());
             }
 
-            if (!$has_achievement) {
-                $this->insightsModel->awardAchievement(
+            try {
+                $this->auditLogger->logActivity(
                     $user_id,
-                    'first_subscription',
-                    'Learning Starter',
-                    'Completed your first educational article!',
-                    ['content_id' => $content_id]
+                    'education_completed',
+                    'education',
+                    $content_id,
+                    ['progress' => 100]
                 );
+            } catch (Exception $e) {
+                // Log but don't fail if audit logging has issues
+                error_log("Audit logging failed: " . $e->getMessage());
             }
-
-            $this->auditLogger->logActivity(
-                $user_id,
-                'education_completed',
-                'education',
-                $content_id,
-                ['progress' => 100]
-            );
 
             echo json_encode([
                 'status' => 'success',
@@ -356,6 +384,70 @@ class InsightsController {
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to update progress']);
         }
+        exit;
+    }
+
+    /**
+     * Toggle bookmark status for educational content
+     */
+    public function toggleBookmark() {
+        // Clean any previous output
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
+        header('Content-Type: application/json');
+
+        // Check authentication
+        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+            exit;
+        }
+
+        if($_SERVER["REQUEST_METHOD"] !== "POST") {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+            exit;
+        }
+
+        // Verify CSRF token
+        if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['status' => 'error', 'message' => 'Invalid CSRF token']);
+            exit;
+        }
+
+        $user_id = $_SESSION["id"];
+        $content_id = $_POST["content_id"] ?? null;
+
+        if (!$content_id) {
+            echo json_encode(['status' => 'error', 'message' => 'Content ID is required']);
+            exit;
+        }
+
+        // Get current bookmark status
+        $progress = $this->insightsModel->getUserEducationalProgress($user_id, $content_id);
+
+        if ($progress && $progress['status'] === 'bookmarked') {
+            // Remove bookmark - set back to started
+            $new_status = 'started';
+            $message = 'Bookmark removed';
+        } else {
+            // Add bookmark
+            $new_status = 'bookmarked';
+            $message = 'Article bookmarked';
+        }
+
+        $success = $this->insightsModel->updateEducationalProgress($user_id, $content_id, $new_status, $progress['progress_percent'] ?? 0);
+
+        if ($success) {
+            echo json_encode([
+                'status' => 'success',
+                'message' => $message,
+                'is_bookmarked' => ($new_status === 'bookmarked')
+            ]);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Failed to update bookmark']);
+        }
+        exit;
     }
 
     /**

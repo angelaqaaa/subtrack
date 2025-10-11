@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(this);
 
-        fetch('categories.php?action=create', {
+        fetch('/routes/categories.php?action=create', {
             method: 'POST',
             body: formData
         })
@@ -386,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const formData = new FormData(this);
 
-        fetch('categories.php?action=update', {
+        fetch('/routes/categories.php?action=update', {
             method: 'POST',
             body: formData
         })
@@ -422,7 +422,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const categoryName = this.dataset.name;
 
             if (confirm(`Are you sure you want to delete the "${categoryName}" category?\n\nThis action cannot be undone.`)) {
-                fetch(`categories.php?action=delete&id=${categoryId}`, {
+                fetch(`/routes/categories.php?action=delete&id=${categoryId}`, {
                     method: 'GET'
                 })
                 .then(response => response.json())

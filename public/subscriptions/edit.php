@@ -2,7 +2,7 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: ../auth/login.php");
+    header("location: /public/auth/login.php");
     exit;
 }
 
@@ -31,7 +31,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
                 $end_date = $row["end_date"];
                 $category = $row["category"];
             } else {
-                header("location: ../dashboard/index.php?error=not_found");
+                header("location: /routes/dashboard.php?error=not_found");
                 exit();
             }
         } else {
@@ -40,7 +40,7 @@ if(isset($_GET["id"]) && !empty(trim($_GET["id"]))){
     }
     unset($stmt);
 } else {
-    header("location: ../dashboard/index.php");
+    header("location: /routes/dashboard.php");
     exit();
 }
 
@@ -111,7 +111,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_user_id = $_SESSION["id"];
 
             if($stmt->execute()){
-                header("location: ../dashboard/index.php?success=updated");
+                header("location: /routes/dashboard.php?success=updated");
                 exit();
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
@@ -229,7 +229,7 @@ include "../../src/Views/layouts/header.php";
                         </div>
 
                         <div class="d-flex justify-content-between">
-                            <a href="dashboard.php" class="btn btn-secondary">
+                            <a href="/routes/dashboard.php" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left me-1"></i>Cancel
                             </a>
                             <button type="submit" class="btn btn-primary">

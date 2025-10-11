@@ -366,7 +366,7 @@ class SubscriptionModel {
             </td>
             <td>
                 <div class="btn-group btn-group-sm" role="group">
-                    <a href="edit_subscription.php?id=' . $subscription['id'] . '" class="btn btn-outline-primary btn-sm">
+                    <a href="/public/subscriptions/edit.php?id=' . $subscription['id'] . '" class="btn btn-outline-primary btn-sm">
                         <i class="bi bi-pencil"></i>
                     </a>
                     <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn" data-id="' . $subscription['id'] . '">

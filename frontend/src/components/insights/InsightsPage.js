@@ -24,22 +24,28 @@ const InsightsPage = () => {
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        // Check if subscriptions were modified since last load
-        const lastModified = localStorage.getItem('subscriptionsLastModified');
+        // Check if subscriptions or insights were modified since last load
+        const subsLastModified = localStorage.getItem('subscriptionsLastModified');
+        const insightsLastModified = localStorage.getItem('insightsLastModified');
         const lastLoadTime = localStorage.getItem('insightsLastLoadTime');
 
-        if (!lastLoadTime || (lastModified && new Date(lastModified) > new Date(lastLoadTime))) {
+        if (!lastLoadTime ||
+            (subsLastModified && new Date(subsLastModified) > new Date(lastLoadTime)) ||
+            (insightsLastModified && new Date(insightsLastModified) > new Date(lastLoadTime))) {
           loadInsightsData();
         }
       }
     };
 
     const handleFocus = () => {
-      // Check for subscription changes when window gains focus
-      const lastModified = localStorage.getItem('subscriptionsLastModified');
+      // Check for subscription or insight changes when window gains focus
+      const subsLastModified = localStorage.getItem('subscriptionsLastModified');
+      const insightsLastModified = localStorage.getItem('insightsLastModified');
       const lastLoadTime = localStorage.getItem('insightsLastLoadTime');
 
-      if (!lastLoadTime || (lastModified && new Date(lastModified) > new Date(lastLoadTime))) {
+      if (!lastLoadTime ||
+          (subsLastModified && new Date(subsLastModified) > new Date(lastLoadTime)) ||
+          (insightsLastModified && new Date(insightsLastModified) > new Date(lastLoadTime))) {
         loadInsightsData();
       }
     };
@@ -185,6 +191,8 @@ const InsightsPage = () => {
         setSuccessMessage('Insight dismissed successfully');
         // Remove the insight from the list
         setInsights(insights.filter(insight => insight.id !== insightId));
+        // Set timestamp to trigger refresh on other pages
+        localStorage.setItem('insightsLastModified', new Date().toISOString());
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
         setError(response.message || 'Failed to dismiss insight');

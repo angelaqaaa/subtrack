@@ -89,7 +89,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
             $param_password = password_hash($password, PASSWORD_DEFAULT);
 
             if($stmt->execute()){
-                header("location: login.php");
+                header("location: /public/auth/login.php");
             } else{
                 echo "Oops! Something went wrong. Please try again later.";
             }
@@ -109,7 +109,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - SubTrack</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link href="/public/assets/css/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <div class="container">
@@ -144,7 +144,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
                             <div class="mb-3">
                                 <input type="submit" class="btn btn-primary w-100" value="Register">
                             </div>
-                            <p class="text-center">Already have an account? <a href="login.php">Login here</a>.</p>
+                            <p class="text-center">Already have an account? <a href="/public/auth/login.php">Login here</a>.</p>
                         </form>
                     </div>
                 </div>

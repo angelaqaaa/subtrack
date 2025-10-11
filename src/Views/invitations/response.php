@@ -113,7 +113,7 @@
             <div class="text-center mt-4">
                 <small class="text-muted">
                     Logged in as <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>
-                    • <a href="auth.php?action=logout">Not you?</a>
+                    • <a href="/routes/auth.php?action=logout">Not you?</a>
                 </small>
             </div>
         </div>
@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('action', action);
         formData.append('csrf_token', '<?= $csrf_token ?>');
 
-        fetch('invitations.php?action=process', {
+        fetch('/routes/invitations.php?action=process', {
             method: 'POST',
             body: formData
         })
@@ -171,13 +171,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <a href="${data.redirect_url}" class="btn btn-primary btn-lg">
                                     <i class="bi bi-arrow-right me-2"></i>Go to Space
                                 </a>
-                                <a href="dashboard_mvc.php" class="btn btn-outline-secondary btn-lg">
+                                <a href="/routes/dashboard.php" class="btn btn-outline-secondary btn-lg">
                                     <i class="bi bi-house me-2"></i>Dashboard
                                 </a>
                             </div>
                         ` : `
                             <p class="text-muted mb-4">The invitation has been declined.</p>
-                            <a href="dashboard_mvc.php" class="btn btn-primary">
+                            <a href="/routes/dashboard.php" class="btn btn-primary">
                                 <i class="bi bi-house me-2"></i>Back to Dashboard
                             </a>
                         `}

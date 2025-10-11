@@ -27,6 +27,7 @@ session_start();
 // Include required files
 require_once '../src/Config/database.php';
 require_once '../src/Models/UserModel.php';
+require_once '../src/Config/csrf.php';
 
 /**
  * Send JSON response
@@ -539,6 +540,19 @@ try {
             } else {
                 sendResponse('error', 'Invalid credentials', null, 401);
             }
+            break;
+
+        case 'get_csrf_token':
+            // This endpoint provides CSRF token for React to use when calling PHP routes
+            if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
+                sendResponse('error', 'User not authenticated', null, 401);
+                break;
+            }
+
+            $csrfHandler = new CSRFHandler();
+            $token = $csrfHandler->getToken();
+
+            sendResponse('success', 'CSRF token retrieved', ['csrf_token' => $token]);
             break;
 
         default:

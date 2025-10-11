@@ -51,7 +51,7 @@ class SpaceController {
         $custom_categories = $this->categoryModel->getUserCategories($user_id);
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Format activities for display
         $formatted_activities = [];
@@ -175,7 +175,7 @@ class SpaceController {
             'currency' => trim($_POST["currency"]),
             'billing_cycle' => trim($_POST["billing_cycle"]),
             'start_date' => trim($_POST["start_date"]),
-            'end_date' => !empty(trim($_POST["end_date"])) ? trim($_POST["end_date"]) : null,
+            'end_date' => isset($_POST["end_date"]) && !empty(trim($_POST["end_date"])) ? trim($_POST["end_date"]) : null,
             'category' => trim($_POST["category"]),
             'space_id' => $space_id
         ];

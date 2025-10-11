@@ -8,10 +8,10 @@
                     <p class="text-muted mb-4"><?= htmlspecialchars($error_message) ?></p>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                        <a href="invitations.php" class="btn btn-primary">
+                        <a href="/routes/invitations.php" class="btn btn-primary">
                             <i class="bi bi-envelope me-2"></i>My Invitations
                         </a>
-                        <a href="dashboard_mvc.php" class="btn btn-outline-secondary">
+                        <a href="/routes/dashboard.php" class="btn btn-outline-secondary">
                             <i class="bi bi-house me-2"></i>Dashboard
                         </a>
                     </div>

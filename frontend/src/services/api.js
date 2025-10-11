@@ -121,6 +121,11 @@ export const authAPI = {
     return response.data;
   },
 
+  getCsrfToken: async () => {
+    const response = await api.get('/api/auth.php?action=get_csrf_token');
+    return response.data;
+  },
+
   deleteAccount: async (password, confirmation) => {
     const formData = new FormData();
     formData.append('password', password);
@@ -400,11 +405,16 @@ export const insightsAPI = {
   },
 
   dismissInsight: async (insightId) => {
+    // Get CSRF token first
+    const tokenResponse = await authAPI.getCsrfToken();
+    const csrfToken = tokenResponse.data.csrf_token;
+
     const formData = new FormData();
     formData.append('insight_id', insightId);
     formData.append('action', 'dismiss');
+    formData.append('csrf_token', csrfToken);
 
-    const response = await api.post('/insights.php', formData, {
+    const response = await api.post('/routes/insights.php?action=insight_action', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }

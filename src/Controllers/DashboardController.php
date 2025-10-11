@@ -49,7 +49,7 @@ class DashboardController {
         $ended_insights = $this->calculateEndedSubscriptionInsights($ended_subscriptions);
 
         // Generate CSRF token for forms
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
@@ -103,7 +103,7 @@ class DashboardController {
             'currency' => trim($_POST["currency"]),
             'billing_cycle' => trim($_POST["billing_cycle"]),
             'start_date' => trim($_POST["start_date"]),
-            'end_date' => !empty(trim($_POST["end_date"])) ? trim($_POST["end_date"]) : null,
+            'end_date' => isset($_POST["end_date"]) && !empty(trim($_POST["end_date"])) ? trim($_POST["end_date"]) : null,
             'category' => trim($_POST["category"])
         ];
 
@@ -268,7 +268,7 @@ class DashboardController {
                 'status' => 'success',
                 'message' => 'Space created successfully',
                 'space_id' => $space_id,
-                'redirect_url' => "space.php?action=view&space_id={$space_id}"
+                'redirect_url' => "/routes/space.php?action=view&space_id={$space_id}"
             ]);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to create space']);
