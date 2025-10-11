@@ -424,7 +424,7 @@ class SpaceController {
         }
 
         // Update subscription
-        $success = $this->subscriptionModel->updateSubscription($subscription_id, [
+        $success = $this->subscriptionModel->updateSubscription($subscription_id, $user_id, [
             'service_name' => $_POST["service_name"],
             'cost' => $_POST["cost"],
             'currency' => $_POST["currency"] ?? 'USD',
@@ -445,6 +445,9 @@ class SpaceController {
      * End space subscription (mark as inactive)
      */
     public function endSpaceSubscription() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
         header('Content-Type: application/json');
 
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -493,6 +496,9 @@ class SpaceController {
      * Reactivate space subscription
      */
     public function reactivateSpaceSubscription() {
+        if (ob_get_level()) {
+            ob_clean();
+        }
         header('Content-Type: application/json');
 
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

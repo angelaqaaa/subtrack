@@ -250,6 +250,42 @@ try {
             }
             break;
 
+        case 'end_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $subscription_id = $_POST['subscription_id'] ?? null;
+            if (!$subscription_id) {
+                sendResponse('error', 'Subscription ID is required', null, 400);
+            }
+
+            $success = $subscriptionModel->endSubscription($subscription_id);
+            if ($success) {
+                sendResponse('success', 'Subscription ended successfully');
+            } else {
+                sendResponse('error', 'Failed to end subscription', null, 500);
+            }
+            break;
+
+        case 'reactivate_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $subscription_id = $_POST['subscription_id'] ?? null;
+            if (!$subscription_id) {
+                sendResponse('error', 'Subscription ID is required', null, 400);
+            }
+
+            $success = $subscriptionModel->reactivateSubscription($subscription_id);
+            if ($success) {
+                sendResponse('success', 'Subscription reactivated successfully');
+            } else {
+                sendResponse('error', 'Failed to reactivate subscription', null, 500);
+            }
+            break;
+
         default:
             sendResponse('error', 'Invalid action', null, 400);
             break;

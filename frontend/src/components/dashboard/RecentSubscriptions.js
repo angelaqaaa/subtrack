@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Card, Table, Button, Badge, ButtonGroup } from 'react-bootstrap';
 import { format, parseISO } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { subscriptionsAPI } from '../../services/api';
 
 const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(null);
   // Get the 5 most recent subscriptions
   const recentSubscriptions = subscriptions
@@ -152,7 +154,7 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                       <Button
                         variant="outline-info"
                         size="sm"
-                        href={`/routes/space.php?action=view&space_id=${subscription.space_id}`}
+                        href={`/routes/space.php?action=view&space_id=${subscription.space_id || subscription.space_id_ref}`}
                         title="Manage in space"
                       >
                         <i className="bi bi-box-arrow-up-right"></i>
@@ -161,6 +163,7 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                       <ButtonGroup size="sm">
                         <Button
                           variant="outline-primary"
+                          onClick={() => navigate('/subscriptions')}
                           disabled={loading === subscription.id}
                           title="Edit"
                         >

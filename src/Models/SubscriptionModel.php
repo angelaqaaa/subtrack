@@ -29,7 +29,9 @@ class SubscriptionModel {
      */
     public function getAllSubscriptionsWithSpaces($user_id) {
         $sql = "SELECT
-                    s.*,
+                    s.id, s.user_id as creator_id, s.service_name, s.cost, s.currency,
+                    s.billing_cycle, s.start_date, s.end_date, s.category, s.space_id,
+                    s.is_active, s.cancellation_reason, s.created_at, s.updated_at,
                     sp.name as space_name,
                     sp.id as space_id_ref,
                     creator.username as created_by_username,
@@ -108,7 +110,7 @@ class SubscriptionModel {
      * Get all subscriptions for a specific space
      */
     public function getSubscriptionsBySpace($space_id) {
-        $sql = "SELECT s.id, s.user_id, s.service_name, s.cost, s.currency, s.billing_cycle,
+        $sql = "SELECT s.id, s.user_id as creator_id, s.service_name, s.cost, s.currency, s.billing_cycle,
                        s.start_date, s.end_date, s.category, s.space_id, s.is_active,
                        s.cancellation_reason, s.created_at, s.updated_at,
                        u.username as created_by

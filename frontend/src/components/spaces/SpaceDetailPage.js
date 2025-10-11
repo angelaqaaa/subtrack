@@ -165,6 +165,49 @@ const SpaceDetailPage = () => {
     setTimeout(() => setSuccessMessage(''), 3000);
   };
 
+  const handleToggleSubscriptionStatus = async (subscriptionId, currentStatus) => {
+    const action = currentStatus ? 'end' : 'reactivate';
+    const message = currentStatus
+      ? 'Are you sure you want to end this subscription?'
+      : 'Are you sure you want to reactivate this subscription?';
+
+    if (!window.confirm(message)) {
+      return;
+    }
+
+    try {
+      if (currentStatus) {
+        await subscriptionsAPI.end(subscriptionId);
+      } else {
+        await subscriptionsAPI.reactivate(subscriptionId);
+      }
+      setSuccessMessage(`Subscription ${action}ed successfully!`);
+      loadSpaceData();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error(`Failed to ${action} subscription:`, error);
+      setError(`Failed to ${action} subscription. Please try again.`);
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
+  const handleDeleteSubscription = async (subscriptionId) => {
+    if (!window.confirm('Are you sure you want to delete this subscription?')) {
+      return;
+    }
+
+    try {
+      await subscriptionsAPI.delete(subscriptionId);
+      setSuccessMessage('Subscription deleted successfully!');
+      loadSpaceData();
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Failed to delete subscription:', error);
+      setError('Failed to delete subscription. Please try again.');
+      setTimeout(() => setError(''), 3000);
+    }
+  };
+
   const handleSubscriptionsSynced = (syncedSubscriptions = []) => {
     setShowSyncExistingModal(false);
     setSuccessMessage(`${syncedSubscriptions.length} subscription(s) synced to space successfully!`);
@@ -426,6 +469,7 @@ const SpaceDetailPage = () => {
                               <th>Cycle</th>
                               <th>Status</th>
                               <th>Added By</th>
+                              {currentUserRole === 'admin' && <th>Actions</th>}
                             </tr>
                           </thead>
                           <tbody>
@@ -461,6 +505,39 @@ const SpaceDetailPage = () => {
                                     </small>
                                   )}
                                 </td>
+                                {currentUserRole === 'admin' && (
+                                  <td>
+                                    <div className="d-flex gap-1">
+                                      <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        title="Edit subscription"
+                                        onClick={() => {
+                                          // Navigate to PHP space page for editing
+                                          window.location.href = `/routes/space.php?action=view&space_id=${spaceId}`;
+                                        }}
+                                      >
+                                        <i className="bi bi-pencil"></i>
+                                      </Button>
+                                      <Button
+                                        variant={subscription.is_active ? 'outline-warning' : 'outline-success'}
+                                        size="sm"
+                                        title={subscription.is_active ? 'End subscription' : 'Reactivate subscription'}
+                                        onClick={() => handleToggleSubscriptionStatus(subscription.id, subscription.is_active)}
+                                      >
+                                        <i className={`bi bi-${subscription.is_active ? 'pause-circle' : 'play-circle'}`}></i>
+                                      </Button>
+                                      <Button
+                                        variant="outline-danger"
+                                        size="sm"
+                                        title="Delete subscription"
+                                        onClick={() => handleDeleteSubscription(subscription.id)}
+                                      >
+                                        <i className="bi bi-trash"></i>
+                                      </Button>
+                                    </div>
+                                  </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
