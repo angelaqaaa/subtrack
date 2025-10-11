@@ -25,6 +25,43 @@ class SubscriptionModel {
     }
 
     /**
+     * Get all subscriptions for a user including those from spaces they're a member of
+     */
+    public function getAllSubscriptionsWithSpaces($user_id) {
+        $sql = "SELECT
+                    s.*,
+                    sp.name as space_name,
+                    sp.id as space_id_ref,
+                    creator.username as created_by_username,
+                    CASE
+                        WHEN s.space_id IS NULL THEN 'personal'
+                        ELSE 'space'
+                    END as subscription_type
+                FROM subscriptions s
+                LEFT JOIN spaces sp ON s.space_id = sp.id
+                LEFT JOIN users creator ON s.user_id = creator.id
+                WHERE (
+                    (s.space_id IS NULL AND s.user_id = ?)
+                    OR
+                    (s.space_id IN (
+                        SELECT space_id FROM space_users WHERE user_id = ?
+                    ))
+                )
+                ORDER BY s.created_at DESC";
+
+        if($stmt = $this->pdo->prepare($sql)) {
+            $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
+
+            if($stmt->execute()) {
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            }
+        }
+
+        return [];
+    }
+
+    /**
      * Get only active subscriptions for a user (for insights and calculations)
      */
     public function getActiveSubscriptionsByUser($user_id) {

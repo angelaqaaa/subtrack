@@ -184,7 +184,15 @@
                                     <tr class="<?php echo (!$subscription['is_active']) ? 'table-secondary' : ''; ?>">
                                         <td>
                                             <strong><?php echo htmlspecialchars($subscription['service_name']); ?></strong>
+                                            <?php if ($subscription['subscription_type'] === 'space'): ?>
+                                                <span class="badge bg-info ms-2" title="From space: <?php echo htmlspecialchars($subscription['space_name']); ?>">
+                                                    <i class="bi bi-people-fill"></i> <?php echo htmlspecialchars($subscription['space_name']); ?>
+                                                </span>
+                                            <?php endif; ?>
                                             <br><small class="text-muted">Started: <?php echo date('M d, Y', strtotime($subscription['start_date'])); ?></small>
+                                            <?php if ($subscription['subscription_type'] === 'space'): ?>
+                                                <br><small class="text-info">Added by: <?php echo htmlspecialchars($subscription['created_by_username']); ?></small>
+                                            <?php endif; ?>
                                             <?php if (!$subscription['is_active'] && $subscription['end_date']): ?>
                                                 <br><small class="text-danger">Ended: <?php echo date('M d, Y', strtotime($subscription['end_date'])); ?></small>
                                             <?php endif; ?>
@@ -216,23 +224,29 @@
                                             <?php endif; ?>
                                         </td>
                                         <td>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="/public/subscriptions/edit.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
-                                                    <i class="bi bi-pencil"></i>
+                                            <?php if ($subscription['subscription_type'] === 'space'): ?>
+                                                <a href="/routes/space.php?action=view&space_id=<?php echo $subscription['space_id']; ?>" class="btn btn-outline-info btn-sm" title="Manage in space">
+                                                    <i class="bi bi-box-arrow-up-right"></i> View in Space
                                                 </a>
-                                                <?php if ($subscription['is_active']): ?>
-                                                    <button type="button" class="btn btn-outline-warning btn-sm end-subscription-btn" data-id="<?php echo $subscription['id']; ?>" data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
-                                                        <i class="bi bi-pause-circle"></i>
+                                            <?php else: ?>
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="/public/subscriptions/edit.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <?php if ($subscription['is_active']): ?>
+                                                        <button type="button" class="btn btn-outline-warning btn-sm end-subscription-btn" data-id="<?php echo $subscription['id']; ?>" data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
+                                                            <i class="bi bi-pause-circle"></i>
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <button type="button" class="btn btn-outline-success btn-sm reactivate-subscription-btn" data-id="<?php echo $subscription['id']; ?>" data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
+                                                            <i class="bi bi-play-circle"></i>
+                                                        </button>
+                                                    <?php endif; ?>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn" data-id="<?php echo $subscription['id']; ?>">
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
-                                                <?php else: ?>
-                                                    <button type="button" class="btn btn-outline-success btn-sm reactivate-subscription-btn" data-id="<?php echo $subscription['id']; ?>" data-name="<?php echo htmlspecialchars($subscription['service_name']); ?>">
-                                                        <i class="bi bi-play-circle"></i>
-                                                    </button>
-                                                <?php endif; ?>
-                                                <button type="button" class="btn btn-outline-danger btn-sm delete-subscription-btn" data-id="<?php echo $subscription['id']; ?>">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
+                                                </div>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>

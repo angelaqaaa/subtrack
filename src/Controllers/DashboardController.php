@@ -34,7 +34,7 @@ class DashboardController {
         $user_id = $_SESSION["id"];
 
         // Get dashboard data
-        $subscriptions = $this->subscriptionModel->getSubscriptionsByUser($user_id); // All subscriptions for display
+        $subscriptions = $this->subscriptionModel->getAllSubscriptionsWithSpaces($user_id); // All subscriptions including from spaces
         $active_subscriptions = $this->subscriptionModel->getActiveSubscriptionsByUser($user_id); // Only active for insights
         $ended_subscriptions = $this->subscriptionModel->getEndedSubscriptionsByUser($user_id); // Ended for separate insights
         $summary = $this->subscriptionModel->getSpendingSummary($user_id);

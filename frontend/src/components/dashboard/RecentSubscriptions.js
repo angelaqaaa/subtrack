@@ -57,6 +57,15 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                 <tr key={subscription.id}>
                   <td>
                     <strong>{subscription.service_name}</strong>
+                    {subscription.subscription_type === 'space' && (
+                      <>
+                        <br />
+                        <Badge bg="info" className="mt-1">
+                          <i className="bi bi-people-fill me-1"></i>
+                          {subscription.space_name}
+                        </Badge>
+                      </>
+                    )}
                   </td>
                   <td>
                     {formatCurrency(subscription.cost, subscription.currency)}
@@ -83,6 +92,14 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                     <small className="text-muted">
                       {formatDate(subscription.start_date)}
                     </small>
+                    {subscription.subscription_type === 'space' && subscription.created_by_username && (
+                      <>
+                        <br />
+                        <small className="text-info">
+                          By: {subscription.created_by_username}
+                        </small>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
