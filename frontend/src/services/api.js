@@ -249,6 +249,30 @@ export const subscriptionsAPI = {
     return response.data;
   },
 
+  end: async (id) => {
+    const formData = new FormData();
+    formData.append('subscription_id', id);
+
+    const response = await api.post('/api/dashboard.php?action=end_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  reactivate: async (id) => {
+    const formData = new FormData();
+    formData.append('subscription_id', id);
+
+    const response = await api.post('/api/dashboard.php?action=reactivate_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
   updateStatus: async (id, isActive) => {
     const formData = new FormData();
     formData.append('subscription_id', id);

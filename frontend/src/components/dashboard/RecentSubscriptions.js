@@ -1,8 +1,10 @@
-import React from 'react';
-import { Card, Table, Button, Badge } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Card, Table, Button, Badge, ButtonGroup } from 'react-bootstrap';
 import { format, parseISO } from 'date-fns';
+import { subscriptionsAPI } from '../../services/api';
 
 const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
+  const [loading, setLoading] = useState(null);
   // Get the 5 most recent subscriptions
   const recentSubscriptions = subscriptions
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
@@ -20,6 +22,49 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
       return format(parseISO(dateString + 'T00:00:00'), 'MMM dd, yyyy');
     } catch {
       return dateString;
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this subscription?')) {
+      return;
+    }
+
+    setLoading(id);
+    try {
+      await subscriptionsAPI.delete(id);
+      onRefresh();
+    } catch (error) {
+      console.error('Failed to delete subscription:', error);
+      alert('Failed to delete subscription');
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleToggleStatus = async (id, currentStatus) => {
+    const action = currentStatus ? 'end' : 'reactivate';
+    const message = currentStatus
+      ? 'Are you sure you want to end this subscription?'
+      : 'Are you sure you want to reactivate this subscription?';
+
+    if (!window.confirm(message)) {
+      return;
+    }
+
+    setLoading(id);
+    try {
+      if (currentStatus) {
+        await subscriptionsAPI.end(id);
+      } else {
+        await subscriptionsAPI.reactivate(id);
+      }
+      onRefresh();
+    } catch (error) {
+      console.error(`Failed to ${action} subscription:`, error);
+      alert(`Failed to ${action} subscription`);
+    } finally {
+      setLoading(null);
     }
   };
 
@@ -50,6 +95,7 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                 <th>Category</th>
                 <th>Status</th>
                 <th>Start Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -99,6 +145,44 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                           By: {subscription.created_by_username}
                         </small>
                       </>
+                    )}
+                  </td>
+                  <td>
+                    {subscription.subscription_type === 'space' ? (
+                      <Button
+                        variant="outline-info"
+                        size="sm"
+                        href={`/routes/space.php?action=view&space_id=${subscription.space_id}`}
+                        title="Manage in space"
+                      >
+                        <i className="bi bi-box-arrow-up-right"></i>
+                      </Button>
+                    ) : (
+                      <ButtonGroup size="sm">
+                        <Button
+                          variant="outline-primary"
+                          disabled={loading === subscription.id}
+                          title="Edit"
+                        >
+                          <i className="bi bi-pencil"></i>
+                        </Button>
+                        <Button
+                          variant={subscription.is_active ? 'outline-warning' : 'outline-success'}
+                          onClick={() => handleToggleStatus(subscription.id, subscription.is_active)}
+                          disabled={loading === subscription.id}
+                          title={subscription.is_active ? 'End subscription' : 'Reactivate subscription'}
+                        >
+                          <i className={`bi bi-${subscription.is_active ? 'pause-circle' : 'play-circle'}`}></i>
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          onClick={() => handleDelete(subscription.id)}
+                          disabled={loading === subscription.id}
+                          title="Delete"
+                        >
+                          <i className="bi bi-trash"></i>
+                        </Button>
+                      </ButtonGroup>
                     )}
                   </td>
                 </tr>
