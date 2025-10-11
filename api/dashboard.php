@@ -3,6 +3,11 @@
  * Dashboard API endpoint for React frontend
  */
 
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Set JSON response headers and enable CORS
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: http://localhost:3000');
@@ -176,21 +181,25 @@ try {
             break;
 
         case 'delete_subscription':
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                sendResponse('error', 'POST method required', null, 405);
-            }
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    sendResponse('error', 'POST method required', null, 405);
+                }
 
-            $subscription_id = $_POST['subscription_id'] ?? '';
-            if (empty($subscription_id)) {
-                sendResponse('error', 'Subscription ID is required', null, 400);
-            }
+                $subscription_id = $_POST['subscription_id'] ?? '';
+                if (empty($subscription_id)) {
+                    sendResponse('error', 'Subscription ID is required', null, 400);
+                }
 
-            $success = $subscriptionModel->deleteSubscription($subscription_id, $user_id);
+                $success = $subscriptionModel->deleteSubscription($subscription_id, $user_id);
 
-            if ($success) {
-                sendResponse('success', 'Subscription deleted successfully');
-            } else {
-                sendResponse('error', 'Failed to delete subscription', null, 500);
+                if ($success) {
+                    sendResponse('success', 'Subscription deleted successfully');
+                } else {
+                    sendResponse('error', 'Failed to delete subscription', null, 500);
+                }
+            } catch (Exception $e) {
+                sendResponse('error', 'Delete error: ' . $e->getMessage(), null, 500);
             }
             break;
 
@@ -251,20 +260,24 @@ try {
             break;
 
         case 'end_subscription':
-            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-                sendResponse('error', 'POST method required', null, 405);
-            }
+            try {
+                if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                    sendResponse('error', 'POST method required', null, 405);
+                }
 
-            $subscription_id = $_POST['subscription_id'] ?? null;
-            if (!$subscription_id) {
-                sendResponse('error', 'Subscription ID is required', null, 400);
-            }
+                $subscription_id = $_POST['subscription_id'] ?? null;
+                if (!$subscription_id) {
+                    sendResponse('error', 'Subscription ID is required', null, 400);
+                }
 
-            $success = $subscriptionModel->endSubscription($subscription_id, $user_id);
-            if ($success) {
-                sendResponse('success', 'Subscription ended successfully');
-            } else {
-                sendResponse('error', 'Failed to end subscription', null, 500);
+                $success = $subscriptionModel->endSubscription($subscription_id, $user_id);
+                if ($success) {
+                    sendResponse('success', 'Subscription ended successfully');
+                } else {
+                    sendResponse('error', 'Failed to end subscription', null, 500);
+                }
+            } catch (Exception $e) {
+                sendResponse('error', 'End error: ' . $e->getMessage(), null, 500);
             }
             break;
 
