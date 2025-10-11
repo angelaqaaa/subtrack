@@ -682,7 +682,7 @@ const SpaceDetailPage = () => {
                             </td>
                             <td>
                               <small className="text-muted">
-                                {member.role === 'admin' && !member.invited_by_username ? 'Owner' : member.invited_by_username || '-'}
+                                {member.role === 'admin' && (member.invited_by === member.user_id || !member.invited_by_username) ? 'Owner' : member.invited_by_username || '-'}
                               </small>
                             </td>
                             <td>
