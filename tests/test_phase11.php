@@ -118,14 +118,15 @@ try {
 
     echo "<h2>✅ Testing File Structure</h2>";
 
+    $base_dir = __DIR__ . '/..';
     $required_files = [
-        'phase11_schema.sql' => '✅ Database schema file',
-        'models/InsightsModel.php' => '✅ Insights model',
-        'controllers/InsightsController.php' => '✅ Insights controller',
-        'insights.php' => '✅ Main insights router',
-        'views/insights_dashboard.php' => '✅ Insights dashboard view',
-        'views/education_library.php' => '✅ Education library view',
-        'views/education_content.php' => '✅ Individual content view'
+        $base_dir . '/database/migrations/phase11_schema.sql' => '✅ Database schema file',
+        $base_dir . '/src/Models/InsightsModel.php' => '✅ Insights model',
+        $base_dir . '/src/Controllers/InsightsController.php' => '✅ Insights controller',
+        $base_dir . '/routes/insights.php' => '✅ Main insights router',
+        $base_dir . '/src/Views/dashboard/insights.php' => '✅ Insights dashboard view',
+        $base_dir . '/src/Views/education/library.php' => '✅ Education library view',
+        $base_dir . '/src/Views/education/content.php' => '✅ Individual content view'
     ];
 
     foreach ($required_files as $file => $description) {
