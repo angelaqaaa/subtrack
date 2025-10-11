@@ -268,9 +268,31 @@ class SubscriptionModel {
 
     /**
      * Delete a subscription
+     * For personal subscriptions: checks user_id matches
+     * For space subscriptions: checks user is a member of the space
      */
     public function deleteSubscription($subscription_id, $user_id) {
-        $sql = "DELETE FROM subscriptions WHERE id = ? AND user_id = ?";
+        // First, get the subscription to check if it's a space subscription
+        $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
+        $check_stmt = $this->pdo->prepare($check_sql);
+        $check_stmt->execute([$subscription_id]);
+        $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$sub) {
+            return false; // Subscription doesn't exist
+        }
+
+        if ($sub['space_id']) {
+            // Space subscription - check if user is a member of the space
+            $sql = "DELETE FROM subscriptions
+                    WHERE id = ?
+                    AND space_id IN (
+                        SELECT space_id FROM space_users WHERE user_id = ?
+                    )";
+        } else {
+            // Personal subscription - check user_id matches
+            $sql = "DELETE FROM subscriptions WHERE id = ? AND user_id = ?";
+        }
 
         if($stmt = $this->pdo->prepare($sql)) {
             $stmt->bindParam(1, $subscription_id, PDO::PARAM_INT);
