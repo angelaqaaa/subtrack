@@ -260,7 +260,7 @@ try {
                 sendResponse('error', 'Subscription ID is required', null, 400);
             }
 
-            $success = $subscriptionModel->endSubscription($subscription_id);
+            $success = $subscriptionModel->endSubscription($subscription_id, $user_id);
             if ($success) {
                 sendResponse('success', 'Subscription ended successfully');
             } else {
@@ -278,7 +278,7 @@ try {
                 sendResponse('error', 'Subscription ID is required', null, 400);
             }
 
-            $success = $subscriptionModel->reactivateSubscription($subscription_id);
+            $success = $subscriptionModel->reactivateSubscription($subscription_id, $user_id);
             if ($success) {
                 sendResponse('success', 'Subscription reactivated successfully');
             } else {

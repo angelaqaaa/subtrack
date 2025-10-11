@@ -128,9 +128,10 @@ class SubscriptionModel {
      * Get all subscriptions for a specific space
      */
     public function getSubscriptionsBySpace($space_id) {
-        $sql = "SELECT s.id, s.user_id as creator_id, s.service_name, s.cost, s.currency, s.billing_cycle,
+        $sql = "SELECT s.id, s.service_name, s.cost, s.currency, s.billing_cycle,
                        s.start_date, s.end_date, s.category, s.space_id, s.is_active,
                        s.cancellation_reason, s.created_at, s.updated_at,
+                       s.user_id as subscription_creator_id,
                        u.username as created_by
                 FROM subscriptions s
                 INNER JOIN users u ON s.user_id = u.id
