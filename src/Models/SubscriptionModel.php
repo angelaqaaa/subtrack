@@ -273,38 +273,41 @@ class SubscriptionModel {
      * For space subscriptions: checks user is a member of the space
      */
     public function deleteSubscription($subscription_id, $user_id) {
-        // First, get the subscription to check if it's a space subscription
-        $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
-        $check_stmt = $this->pdo->prepare($check_sql);
-        $check_stmt->execute([$subscription_id]);
-        $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            // First, get the subscription to check if it's a space subscription
+            $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
+            $check_stmt = $this->pdo->prepare($check_sql);
+            $check_stmt->execute([$subscription_id]);
+            $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$sub) {
-            return false; // Subscription doesn't exist
-        }
-
-        if ($sub['space_id']) {
-            // Space subscription - check if user is a member of the space
-            $sql = "DELETE FROM subscriptions
-                    WHERE id = ?
-                    AND space_id IN (
-                        SELECT space_id FROM space_users WHERE user_id = ?
-                    )";
-        } else {
-            // Personal subscription - check user_id matches
-            $sql = "DELETE FROM subscriptions WHERE id = ? AND user_id = ?";
-        }
-
-        if($stmt = $this->pdo->prepare($sql)) {
-            $stmt->bindParam(1, $subscription_id, PDO::PARAM_INT);
-            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
-
-            if($stmt->execute()) {
-                return $stmt->rowCount() > 0;
+            if (!$sub) {
+                return false; // Subscription doesn't exist
             }
-        }
 
-        return false;
+            if ($sub['space_id']) {
+                // Space subscription - verify user is a member of the space
+                $member_check = $this->pdo->prepare("SELECT COUNT(*) FROM space_users WHERE space_id = ? AND user_id = ?");
+                $member_check->execute([$sub['space_id'], $user_id]);
+                if ($member_check->fetchColumn() == 0) {
+                    return false; // User is not a member
+                }
+
+                // Delete the space subscription
+                $sql = "DELETE FROM subscriptions WHERE id = ?";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute([$subscription_id]);
+            } else {
+                // Personal subscription - check user_id matches
+                $sql = "DELETE FROM subscriptions WHERE id = ? AND user_id = ?";
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute([$subscription_id, $user_id]);
+            }
+
+            return $stmt->rowCount() > 0;
+        } catch (Exception $e) {
+            error_log("Delete subscription error: " . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -558,47 +561,49 @@ class SubscriptionModel {
      * For space subscriptions: checks user is a member of the space
      */
     public function endSubscription($subscription_id, $user_id = null, $end_date = null, $reason = null) {
-        if (!$end_date) {
-            $end_date = date('Y-m-d');
-        }
+        try {
+            if (!$end_date) {
+                $end_date = date('Y-m-d');
+            }
 
-        // Get the subscription to check if it's a space subscription
-        $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
-        $check_stmt = $this->pdo->prepare($check_sql);
-        $check_stmt->execute([$subscription_id]);
-        $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
+            // Get the subscription to check if it's a space subscription
+            $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
+            $check_stmt = $this->pdo->prepare($check_sql);
+            $check_stmt->execute([$subscription_id]);
+            $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$sub) {
-            return false; // Subscription doesn't exist
-        }
+            if (!$sub) {
+                return false; // Subscription doesn't exist
+            }
 
-        if ($sub['space_id']) {
-            // Space subscription - check if user is a member of the space (if user_id provided)
-            if ($user_id) {
-                $sql = "UPDATE subscriptions
-                        SET end_date = ?, is_active = FALSE, cancellation_reason = ?, updated_at = NOW()
-                        WHERE id = ?
-                        AND space_id IN (
-                            SELECT space_id FROM space_users WHERE user_id = ?
-                        )";
-                $params = [$end_date, $reason, $subscription_id, $user_id];
-            } else {
-                // No user check for space subscriptions
+            if ($sub['space_id']) {
+                // Space subscription - verify user is a member
+                if ($user_id) {
+                    $member_check = $this->pdo->prepare("SELECT COUNT(*) FROM space_users WHERE space_id = ? AND user_id = ?");
+                    $member_check->execute([$sub['space_id'], $user_id]);
+                    if ($member_check->fetchColumn() == 0) {
+                        return false; // User is not a member
+                    }
+                }
+
+                // Update the space subscription
                 $sql = "UPDATE subscriptions
                         SET end_date = ?, is_active = FALSE, cancellation_reason = ?, updated_at = NOW()
                         WHERE id = ?";
-                $params = [$end_date, $reason, $subscription_id];
+                $stmt = $this->pdo->prepare($sql);
+                return $stmt->execute([$end_date, $reason, $subscription_id]);
+            } else {
+                // Personal subscription - check user_id matches
+                $sql = "UPDATE subscriptions
+                        SET end_date = ?, is_active = FALSE, cancellation_reason = ?, updated_at = NOW()
+                        WHERE id = ? AND user_id = ?";
+                $stmt = $this->pdo->prepare($sql);
+                return $stmt->execute([$end_date, $reason, $subscription_id, $user_id]);
             }
-        } else {
-            // Personal subscription - check user_id matches
-            $sql = "UPDATE subscriptions
-                    SET end_date = ?, is_active = FALSE, cancellation_reason = ?, updated_at = NOW()
-                    WHERE id = ? AND user_id = ?";
-            $params = [$end_date, $reason, $subscription_id, $user_id];
+        } catch (Exception $e) {
+            error_log("End subscription error: " . $e->getMessage());
+            return false;
         }
-
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute($params);
     }
 
     /**
@@ -607,50 +612,51 @@ class SubscriptionModel {
      * For space subscriptions: checks user is a member of the space
      */
     public function reactivateSubscription($subscription_id, $user_id = null, $new_start_date = null) {
-        if (!$new_start_date) {
-            $new_start_date = date('Y-m-d');
-        }
+        try {
+            if (!$new_start_date) {
+                $new_start_date = date('Y-m-d');
+            }
 
-        // Get the subscription to check if it's a space subscription
-        $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
-        $check_stmt = $this->pdo->prepare($check_sql);
-        $check_stmt->execute([$subscription_id]);
-        $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
+            // Get the subscription to check if it's a space subscription
+            $check_sql = "SELECT space_id FROM subscriptions WHERE id = ?";
+            $check_stmt = $this->pdo->prepare($check_sql);
+            $check_stmt->execute([$subscription_id]);
+            $sub = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-        if (!$sub) {
-            return false; // Subscription doesn't exist
-        }
+            if (!$sub) {
+                return false; // Subscription doesn't exist
+            }
 
-        if ($sub['space_id']) {
-            // Space subscription - check if user is a member of the space (if user_id provided)
-            if ($user_id) {
-                $sql = "UPDATE subscriptions
-                        SET is_active = TRUE, end_date = NULL, cancellation_reason = NULL,
-                            start_date = ?, updated_at = NOW()
-                        WHERE id = ?
-                        AND space_id IN (
-                            SELECT space_id FROM space_users WHERE user_id = ?
-                        )";
-                $params = [$new_start_date, $subscription_id, $user_id];
-            } else {
-                // No user check for space subscriptions
+            if ($sub['space_id']) {
+                // Space subscription - verify user is a member
+                if ($user_id) {
+                    $member_check = $this->pdo->prepare("SELECT COUNT(*) FROM space_users WHERE space_id = ? AND user_id = ?");
+                    $member_check->execute([$sub['space_id'], $user_id]);
+                    if ($member_check->fetchColumn() == 0) {
+                        return false; // User is not a member
+                    }
+                }
+
+                // Reactivate the space subscription
                 $sql = "UPDATE subscriptions
                         SET is_active = TRUE, end_date = NULL, cancellation_reason = NULL,
                             start_date = ?, updated_at = NOW()
                         WHERE id = ?";
-                $params = [$new_start_date, $subscription_id];
+                $stmt = $this->pdo->prepare($sql);
+                return $stmt->execute([$new_start_date, $subscription_id]);
+            } else {
+                // Personal subscription - check user_id matches
+                $sql = "UPDATE subscriptions
+                        SET is_active = TRUE, end_date = NULL, cancellation_reason = NULL,
+                            start_date = ?, updated_at = NOW()
+                        WHERE id = ? AND user_id = ?";
+                $stmt = $this->pdo->prepare($sql);
+                return $stmt->execute([$new_start_date, $subscription_id, $user_id]);
             }
-        } else {
-            // Personal subscription - check user_id matches
-            $sql = "UPDATE subscriptions
-                    SET is_active = TRUE, end_date = NULL, cancellation_reason = NULL,
-                        start_date = ?, updated_at = NOW()
-                    WHERE id = ? AND user_id = ?";
-            $params = [$new_start_date, $subscription_id, $user_id];
+        } catch (Exception $e) {
+            error_log("Reactivate subscription error: " . $e->getMessage());
+            return false;
         }
-
-        $stmt = $this->pdo->prepare($sql);
-        return $stmt->execute($params);
     }
 
     /**
