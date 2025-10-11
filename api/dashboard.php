@@ -8,6 +8,9 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// Log to file for debugging
+ini_set('error_log', __DIR__ . '/../debug.log');
+
 // Set JSON response headers and enable CORS
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: http://localhost:3000');
@@ -68,11 +71,23 @@ try {
     $user_id = $_SESSION['id'];
     $action = $_GET['action'] ?? '';
 
+    error_log("API Request: action=$action, user_id=$user_id, session_id=" . session_id());
+
     $subscriptionModel = new SubscriptionModel($pdo);
     $spaceModel = new SpaceModel($pdo);
     $insightsModel = new InsightsModel($pdo);
 
     switch ($action) {
+        case 'debug_session':
+            // Debug endpoint to check session data
+            sendResponse('success', 'Session data retrieved', [
+                'user_id' => $user_id,
+                'session_id' => session_id(),
+                'username' => $_SESSION['username'] ?? 'N/A',
+                'all_session' => $_SESSION
+            ]);
+            break;
+
         case 'get_subscriptions':
             // Get all subscriptions including those from spaces the user is a member of
             $subscriptions = $subscriptionModel->getAllSubscriptionsWithSpaces($user_id);
@@ -187,11 +202,14 @@ try {
                 }
 
                 $subscription_id = $_POST['subscription_id'] ?? '';
+                error_log("API delete_subscription: sub_id=$subscription_id, user_id=$user_id");
+
                 if (empty($subscription_id)) {
                     sendResponse('error', 'Subscription ID is required', null, 400);
                 }
 
                 $success = $subscriptionModel->deleteSubscription($subscription_id, $user_id);
+                error_log("API delete_subscription result: " . ($success ? 'true' : 'false'));
 
                 if ($success) {
                     sendResponse('success', 'Subscription deleted successfully');
@@ -199,6 +217,7 @@ try {
                     sendResponse('error', 'Failed to delete subscription', null, 500);
                 }
             } catch (Exception $e) {
+                error_log("API delete_subscription exception: " . $e->getMessage());
                 sendResponse('error', 'Delete error: ' . $e->getMessage(), null, 500);
             }
             break;
@@ -266,17 +285,22 @@ try {
                 }
 
                 $subscription_id = $_POST['subscription_id'] ?? null;
+                error_log("API end_subscription: sub_id=$subscription_id, user_id=$user_id");
+
                 if (!$subscription_id) {
                     sendResponse('error', 'Subscription ID is required', null, 400);
                 }
 
                 $success = $subscriptionModel->endSubscription($subscription_id, $user_id);
+                error_log("API end_subscription result: " . ($success ? 'true' : 'false'));
+
                 if ($success) {
                     sendResponse('success', 'Subscription ended successfully');
                 } else {
                     sendResponse('error', 'Failed to end subscription', null, 500);
                 }
             } catch (Exception $e) {
+                error_log("API end_subscription exception: " . $e->getMessage());
                 sendResponse('error', 'End error: ' . $e->getMessage(), null, 500);
             }
             break;

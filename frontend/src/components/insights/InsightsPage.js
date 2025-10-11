@@ -463,7 +463,17 @@ const InsightsPage = () => {
 
                           return (
                             <tr key={sub.id}>
-                              <td><strong>{sub.service_name}</strong></td>
+                              <td>
+                                <strong>{sub.service_name}</strong>
+                                {sub.subscription_type === 'space' && sub.space_name && (
+                                  <span className="ms-2">
+                                    <Badge bg="info" pill size="sm">
+                                      <i className="bi bi-people-fill me-1"></i>
+                                      {sub.space_name}
+                                    </Badge>
+                                  </span>
+                                )}
+                              </td>
                               <td>
                                 <Badge bg="secondary" pill>
                                   {sub.category || 'Other'}

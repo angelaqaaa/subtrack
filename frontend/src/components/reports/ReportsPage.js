@@ -582,7 +582,17 @@ const ReportsPage = () => {
                   <tbody>
                     {reportData.subscriptionList.map((subscription) => (
                       <tr key={subscription.id}>
-                        <td><strong>{subscription.service_name}</strong></td>
+                        <td>
+                          <strong>{subscription.service_name}</strong>
+                          {subscription.subscription_type === 'space' && subscription.space_name && (
+                            <span className="ms-2">
+                              <Badge bg="info" pill size="sm">
+                                <i className="bi bi-people-fill me-1"></i>
+                                {subscription.space_name}
+                              </Badge>
+                            </span>
+                          )}
+                        </td>
                         <td>
                           <Badge bg="secondary" pill>
                             {subscription.category || 'Other'}

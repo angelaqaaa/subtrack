@@ -371,9 +371,10 @@ try {
                 sendResponse('error', 'Space ID and subscription IDs are required', null, 400);
             }
 
-            // Check if user has permission to sync subscriptions (admin or editor)
-            if (!$spaceModel->hasPermission($space_id, $user_id, 'editor')) {
-                sendResponse('error', 'Access denied. Editor permissions required.', null, 403);
+            // Check if user is at least a viewer in the space
+            // Users can sync their own subscriptions to any space they're a member of
+            if (!$spaceModel->hasPermission($space_id, $user_id, 'viewer')) {
+                sendResponse('error', 'Access denied. You must be a member of the space.', null, 403);
             }
 
             $result = $spaceModel->syncExistingSubscriptions($space_id, $subscription_ids, $user_id);
@@ -382,6 +383,28 @@ try {
                 sendResponse('success', 'Subscriptions synced to space successfully', ['synced_count' => $result]);
             } else {
                 sendResponse('error', 'Failed to sync subscriptions to space', null, 500);
+            }
+            break;
+
+        case 'unsync_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'Method not allowed', null, 405);
+            }
+
+            $input = json_decode(file_get_contents('php://input'), true);
+            $subscription_id = $input['subscription_id'] ?? null;
+
+            if (!$subscription_id) {
+                sendResponse('error', 'Subscription ID is required', null, 400);
+            }
+
+            // Remove the subscription from space (set space_id to NULL)
+            $result = $spaceModel->unsyncSubscription($subscription_id, $user_id);
+
+            if ($result) {
+                sendResponse('success', 'Subscription removed from space successfully');
+            } else {
+                sendResponse('error', 'Failed to remove subscription from space', null, 500);
             }
             break;
 
@@ -398,6 +421,66 @@ try {
 
             $subscriptions = $spaceModel->getSpaceSubscriptions($space_id);
             sendResponse('success', 'Space subscriptions retrieved successfully', ['subscriptions' => $subscriptions]);
+            break;
+
+        case 'delete_space_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $subscription_id = $_POST['subscription_id'] ?? null;
+            $space_id = $_POST['space_id'] ?? null;
+
+            if (!$subscription_id || !$space_id) {
+                sendResponse('error', 'Subscription ID and Space ID are required', null, 400);
+            }
+
+            $success = $spaceModel->deleteSpaceSubscription($subscription_id, $space_id, $user_id);
+            if ($success) {
+                sendResponse('success', 'Space subscription deleted successfully');
+            } else {
+                sendResponse('error', 'Failed to delete space subscription', null, 500);
+            }
+            break;
+
+        case 'end_space_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $subscription_id = $_POST['subscription_id'] ?? null;
+            $space_id = $_POST['space_id'] ?? null;
+
+            if (!$subscription_id || !$space_id) {
+                sendResponse('error', 'Subscription ID and Space ID are required', null, 400);
+            }
+
+            $success = $spaceModel->endSpaceSubscription($subscription_id, $space_id, $user_id);
+            if ($success) {
+                sendResponse('success', 'Space subscription ended successfully');
+            } else {
+                sendResponse('error', 'Failed to end space subscription', null, 500);
+            }
+            break;
+
+        case 'reactivate_space_subscription':
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                sendResponse('error', 'POST method required', null, 405);
+            }
+
+            $subscription_id = $_POST['subscription_id'] ?? null;
+            $space_id = $_POST['space_id'] ?? null;
+
+            if (!$subscription_id || !$space_id) {
+                sendResponse('error', 'Subscription ID and Space ID are required', null, 400);
+            }
+
+            $success = $spaceModel->reactivateSpaceSubscription($subscription_id, $space_id, $user_id);
+            if ($success) {
+                sendResponse('success', 'Space subscription reactivated successfully');
+            } else {
+                sendResponse('error', 'Failed to reactivate space subscription', null, 500);
+            }
             break;
 
         case 'update_member_role':

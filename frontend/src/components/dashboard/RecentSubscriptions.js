@@ -154,8 +154,8 @@ const RecentSubscriptions = ({ subscriptions, onRefresh, onAddNew }) => {
                       <Button
                         variant="outline-info"
                         size="sm"
-                        href={`/routes/space.php?action=view&space_id=${subscription.space_id || subscription.space_id_ref}`}
-                        title="Manage in space"
+                        onClick={() => navigate(`/spaces/${subscription.space_id || subscription.space_id_ref}`)}
+                        title="View in space"
                       >
                         <i className="bi bi-box-arrow-up-right"></i>
                       </Button>

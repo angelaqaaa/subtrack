@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import InviteUserModal from './InviteUserModal';
 import ViewMembersModal from './ViewMembersModal';
 import AddSubscriptionModal from '../subscriptions/AddSubscriptionModal';
+import EditSubscriptionModal from '../subscriptions/EditSubscriptionModal';
 import SyncExistingSubscriptionsModal from './SyncExistingSubscriptionsModal';
 import SpaceAddSubscriptionModal from './SpaceAddSubscriptionModal';
 
@@ -24,6 +25,8 @@ const SpaceDetailPage = () => {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [showAddSubscriptionModal, setShowAddSubscriptionModal] = useState(false);
+  const [showEditSubscriptionModal, setShowEditSubscriptionModal] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState(null);
   const [showSyncExistingModal, setShowSyncExistingModal] = useState(false);
   const [showSpaceAddModal, setShowSpaceAddModal] = useState(false);
 
@@ -177,9 +180,9 @@ const SpaceDetailPage = () => {
 
     try {
       if (currentStatus) {
-        await subscriptionsAPI.end(subscriptionId);
+        await spacesAPI.endSpaceSubscription(subscriptionId, spaceId);
       } else {
-        await subscriptionsAPI.reactivate(subscriptionId);
+        await spacesAPI.reactivateSpaceSubscription(subscriptionId, spaceId);
       }
       setSuccessMessage(`Subscription ${action}ed successfully!`);
       loadSpaceData();
@@ -197,7 +200,7 @@ const SpaceDetailPage = () => {
     }
 
     try {
-      await subscriptionsAPI.delete(subscriptionId);
+      await spacesAPI.deleteSpaceSubscription(subscriptionId, spaceId);
       setSuccessMessage('Subscription deleted successfully!');
       loadSpaceData();
       setTimeout(() => setSuccessMessage(''), 3000);
@@ -206,6 +209,19 @@ const SpaceDetailPage = () => {
       setError('Failed to delete subscription. Please try again.');
       setTimeout(() => setError(''), 3000);
     }
+  };
+
+  const handleEditSubscription = (subscription) => {
+    setSelectedSubscription(subscription);
+    setShowEditSubscriptionModal(true);
+  };
+
+  const handleEditSubscriptionSuccess = () => {
+    setShowEditSubscriptionModal(false);
+    setSelectedSubscription(null);
+    setSuccessMessage('Subscription updated successfully!');
+    loadSpaceData();
+    setTimeout(() => setSuccessMessage(''), 3000);
   };
 
   const handleSubscriptionsSynced = (syncedSubscriptions = []) => {
@@ -501,7 +517,7 @@ const SpaceDetailPage = () => {
                                     </Badge>
                                   ) : (
                                     <small className="text-muted">
-                                      {subscription.added_by || 'Unknown'}
+                                      {subscription.added_by_username || 'Unknown'}
                                     </small>
                                   )}
                                 </td>
@@ -512,10 +528,7 @@ const SpaceDetailPage = () => {
                                         variant="outline-primary"
                                         size="sm"
                                         title="Edit subscription"
-                                        onClick={() => {
-                                          // Navigate to PHP space page for editing
-                                          window.location.href = `/routes/space.php?action=view&space_id=${spaceId}`;
-                                        }}
+                                        onClick={() => handleEditSubscription(subscription)}
                                       >
                                         <i className="bi bi-pencil"></i>
                                       </Button>
@@ -764,6 +777,14 @@ const SpaceDetailPage = () => {
         onHide={() => setShowSpaceAddModal(false)}
         onSuccess={handleSpaceSubscriptionAdded}
         spaceId={spaceId}
+      />
+
+      {/* Edit Subscription Modal */}
+      <EditSubscriptionModal
+        show={showEditSubscriptionModal}
+        onHide={() => setShowEditSubscriptionModal(false)}
+        onSuccess={handleEditSubscriptionSuccess}
+        subscription={selectedSubscription}
       />
     </Container>
   );

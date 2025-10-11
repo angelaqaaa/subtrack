@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Spinner, Card } from 'react-bootstrap';
 import { subscriptionsAPI, spacesAPI } from '../../services/api';
 import { ActivityLogger, ActivityTypes } from '../../utils/activityLogger';
+import { useAuth } from '../../contexts/AuthContext';
 
 const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     service_name: '',
     cost: '',
@@ -31,6 +33,15 @@ const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
         end_date: subscription.end_date || '',
         category: subscription.category || 'Entertainment'
       });
+
+      // If subscription is already in a space, pre-select it
+      if (subscription.space_id) {
+        setSyncToSpace(String(subscription.space_id));
+        setEnableSpaceSync(true);
+      } else {
+        setSyncToSpace('');
+        setEnableSpaceSync(false);
+      }
     }
     if (show) {
       loadCategories();
@@ -40,7 +51,7 @@ const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
 
   const loadCategories = () => {
     try {
-      const savedCategories = localStorage.getItem('userCategories');
+      const savedCategories = localStorage.getItem(`userCategories_${user?.id || 'unknown'}`);
       if (savedCategories) {
         setCategories(JSON.parse(savedCategories));
       } else {
@@ -106,16 +117,35 @@ const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
           category: formData.category
         });
 
-        // If sync to space is enabled, add to selected space
-        if (enableSpaceSync && syncToSpace) {
+        // Handle space changes
+        const oldSpaceId = subscription.space_id;
+        const newSpaceId = enableSpaceSync && syncToSpace ? syncToSpace : null;
+
+        // If space changed, update the space_id
+        if (String(oldSpaceId) !== String(newSpaceId)) {
           try {
-            await spacesAPI.addSubscription(syncToSpace, {
-              ...subscription,
-              ...formData
-            });
+            // Case 1: Moving from one space to another space
+            if (oldSpaceId && newSpaceId && String(oldSpaceId) !== String(newSpaceId)) {
+              // First unsync from old space
+              await spacesAPI.unsyncSubscription(subscription.id);
+              console.log('Successfully removed subscription from old space:', oldSpaceId);
+              // Then sync to new space
+              await spacesAPI.syncExistingSubscriptions(newSpaceId, [subscription.id]);
+              console.log('Successfully synced subscription to new space:', newSpaceId);
+            }
+            // Case 2: Moving from personal to space
+            else if (!oldSpaceId && newSpaceId) {
+              await spacesAPI.syncExistingSubscriptions(newSpaceId, [subscription.id]);
+              console.log('Successfully synced subscription to space:', newSpaceId);
+            }
+            // Case 3: Removing from space (moving to personal)
+            else if (oldSpaceId && !newSpaceId) {
+              await spacesAPI.unsyncSubscription(subscription.id);
+              console.log('Successfully removed subscription from space');
+            }
           } catch (spaceErr) {
-            console.error('Failed to sync to space:', spaceErr);
-            // Don't block the main flow, just log the error
+            console.error('Failed to update space assignment:', spaceErr);
+            setError('Subscription updated but failed to update space assignment');
           }
         }
 
@@ -274,11 +304,18 @@ const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
                   <Form.Check
                     type="checkbox"
                     id="enable-space-sync-edit"
-                    label="Add/update this subscription in a shared space"
+                    label={subscription?.space_id
+                      ? "Keep this subscription in a shared space"
+                      : "Add this subscription to a shared space"}
                     checked={enableSpaceSync}
                     onChange={(e) => setEnableSpaceSync(e.target.checked)}
                     disabled={loading}
                   />
+                  {subscription?.space_id && (
+                    <Form.Text className="text-muted d-block mt-1">
+                      Uncheck to remove this subscription from all spaces (move to personal)
+                    </Form.Text>
+                  )}
                 </Form.Group>
 
                 {enableSpaceSync && (
@@ -298,7 +335,9 @@ const EditSubscriptionModal = ({ show, onHide, onSuccess, subscription }) => {
                       ))}
                     </Form.Select>
                     <Form.Text className="text-muted">
-                      This subscription will be added/updated in the selected shared space.
+                      {subscription?.space_id
+                        ? "Change to move this subscription to a different space"
+                        : "This subscription will be added to the selected shared space"}
                     </Form.Text>
                   </Form.Group>
                 )}
