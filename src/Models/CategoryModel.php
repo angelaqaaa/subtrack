@@ -71,18 +71,18 @@ class CategoryModel {
      * Soft delete a category (mark as inactive)
      */
     public function deleteCategory($category_id, $user_id) {
-        // First check if category is used by subscriptions
+        // First check if category is used by ANY subscriptions (active or inactive)
         $stmt = $this->pdo->prepare("
             SELECT COUNT(*) as usage_count
             FROM subscriptions s
             JOIN custom_categories c ON s.category = c.name
-            WHERE c.id = ? AND c.user_id = ? AND s.is_active = TRUE
+            WHERE c.id = ? AND c.user_id = ?
         ");
         $stmt->execute([$category_id, $user_id]);
         $result = $stmt->fetch();
 
         if ($result['usage_count'] > 0) {
-            return ['success' => false, 'message' => 'Cannot delete category that is currently used by active subscriptions'];
+            return ['success' => false, 'message' => 'Cannot delete category that has associated subscriptions. Please reassign or delete the subscriptions first.'];
         }
 
         // Soft delete

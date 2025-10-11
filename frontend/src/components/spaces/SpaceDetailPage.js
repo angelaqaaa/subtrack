@@ -680,7 +680,11 @@ const SpaceDetailPage = () => {
                                 {member.status}
                               </Badge>
                             </td>
-                            <td><small className="text-muted">{member.invited_by_username}</small></td>
+                            <td>
+                              <small className="text-muted">
+                                {member.role === 'admin' && !member.invited_by_username ? 'Owner' : member.invited_by_username || '-'}
+                              </small>
+                            </td>
                             <td>
                               <small className="text-muted">
                                 {member.accepted_at ? new Date(member.accepted_at).toLocaleDateString() : '-'}
