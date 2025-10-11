@@ -401,8 +401,54 @@ export const spacesAPI = {
     return response.data;
   },
 
+  unsyncSubscription: async (subscriptionId) => {
+    const response = await api.post('/api/spaces.php?action=unsync_subscription', {
+      subscription_id: subscriptionId
+    });
+    return response.data;
+  },
+
   getSpaceSubscriptions: async (spaceId) => {
     const response = await api.get(`/api/spaces.php?action=get_subscriptions&space_id=${spaceId}`);
+    return response.data;
+  },
+
+  deleteSpaceSubscription: async (subscriptionId, spaceId) => {
+    const formData = new FormData();
+    formData.append('subscription_id', subscriptionId);
+    formData.append('space_id', spaceId);
+
+    const response = await api.post('/api/spaces.php?action=delete_space_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  endSpaceSubscription: async (subscriptionId, spaceId) => {
+    const formData = new FormData();
+    formData.append('subscription_id', subscriptionId);
+    formData.append('space_id', spaceId);
+
+    const response = await api.post('/api/spaces.php?action=end_space_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    return response.data;
+  },
+
+  reactivateSpaceSubscription: async (subscriptionId, spaceId) => {
+    const formData = new FormData();
+    formData.append('subscription_id', subscriptionId);
+    formData.append('space_id', spaceId);
+
+    const response = await api.post('/api/spaces.php?action=reactivate_space_subscription', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   },
 

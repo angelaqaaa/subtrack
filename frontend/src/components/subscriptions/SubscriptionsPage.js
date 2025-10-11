@@ -290,6 +290,14 @@ const SubscriptionsPage = () => {
                       <tr key={subscription.id}>
                         <td>
                           <strong>{subscription.service_name}</strong>
+                          {subscription.subscription_type === 'space' && subscription.space_name && (
+                            <span className="ms-2">
+                              <Badge bg="info" pill size="sm">
+                                <i className="bi bi-people-fill me-1"></i>
+                                {subscription.space_name}
+                              </Badge>
+                            </span>
+                          )}
                         </td>
                         <td>
                           {formatCurrency(subscription.cost, subscription.currency)}

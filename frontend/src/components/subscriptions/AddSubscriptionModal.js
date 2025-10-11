@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button, Alert, Spinner, Card } from 'react-bootstrap';
 import { subscriptionsAPI, spacesAPI } from '../../services/api';
 import { ActivityLogger, ActivityTypes } from '../../utils/activityLogger';
+import { useAuth } from '../../contexts/AuthContext';
 
 const AddSubscriptionModal = ({ show, onHide, onSuccess, defaultSpaceId, defaultEnableSpaceSync }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     service_name: '',
     cost: '',
@@ -37,7 +39,7 @@ const AddSubscriptionModal = ({ show, onHide, onSuccess, defaultSpaceId, default
 
   const loadCategories = () => {
     try {
-      const savedCategories = localStorage.getItem('userCategories');
+      const savedCategories = localStorage.getItem(`userCategories_${user?.id || 'unknown'}`);
       if (savedCategories) {
         setCategories(JSON.parse(savedCategories));
       } else {
@@ -105,15 +107,11 @@ const AddSubscriptionModal = ({ show, onHide, onSuccess, defaultSpaceId, default
           category: formData.category
         });
 
-        // If sync to space is enabled, add to selected space
-        if (enableSpaceSync && syncToSpace) {
+        // If sync to space is enabled, sync the newly created subscription to the space
+        if (enableSpaceSync && syncToSpace && response.data?.subscription_id) {
           try {
-            // Use the form data since the response might not contain the full subscription object
-            const subscriptionForSpace = {
-              ...formData,
-              id: response.data?.subscription_id || Date.now()
-            };
-            await spacesAPI.addSubscription(syncToSpace, subscriptionForSpace);
+            // Use the sync function to link the subscription to the space
+            await spacesAPI.syncExistingSubscriptions(syncToSpace, [response.data.subscription_id]);
             console.log('Successfully synced subscription to space:', syncToSpace);
           } catch (spaceErr) {
             console.error('Failed to sync to space:', spaceErr);

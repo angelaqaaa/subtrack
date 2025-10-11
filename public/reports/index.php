@@ -12,14 +12,26 @@ require_once "../../src/Config/database.php";
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-12 months'));
 
-// Fetch filtered subscriptions (only active ones)
-$sql = "SELECT * FROM subscriptions WHERE user_id = ? AND start_date BETWEEN ? AND ? AND is_active = 1 ORDER BY start_date DESC";
+// Fetch filtered subscriptions (only active ones, including space subscriptions)
+$sql = "SELECT s.*, sp.name as space_name,
+        CASE WHEN s.space_id IS NULL THEN 'personal' ELSE 'space' END as subscription_type
+        FROM subscriptions s
+        LEFT JOIN spaces sp ON s.space_id = sp.id
+        WHERE (
+            (s.space_id IS NULL AND s.user_id = ?)
+            OR
+            (s.space_id IN (SELECT space_id FROM space_users WHERE user_id = ?))
+        )
+        AND s.start_date BETWEEN ? AND ?
+        AND s.is_active = 1
+        ORDER BY s.start_date DESC";
 $filtered_subscriptions = [];
 
 if($stmt = $pdo->prepare($sql)){
     $stmt->bindParam(1, $_SESSION["id"], PDO::PARAM_INT);
-    $stmt->bindParam(2, $start_date, PDO::PARAM_STR);
-    $stmt->bindParam(3, $end_date, PDO::PARAM_STR);
+    $stmt->bindParam(2, $_SESSION["id"], PDO::PARAM_INT);
+    $stmt->bindParam(3, $start_date, PDO::PARAM_STR);
+    $stmt->bindParam(4, $end_date, PDO::PARAM_STR);
 
     if($stmt->execute()){
         $filtered_subscriptions = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -245,7 +257,17 @@ include "../../src/Views/layouts/header.php";
                                     <?php foreach($filtered_subscriptions as $subscription): ?>
                                         <?php $monthly_equiv = $subscription['billing_cycle'] == 'monthly' ? $subscription['cost'] : $subscription['cost'] / 12; ?>
                                         <tr>
-                                            <td><strong><?php echo htmlspecialchars($subscription['service_name']); ?></strong></td>
+                                            <td>
+                                                <strong><?php echo htmlspecialchars($subscription['service_name']); ?></strong>
+                                                <?php if($subscription['subscription_type'] === 'space' && !empty($subscription['space_name'])): ?>
+                                                    <span class="ms-2">
+                                                        <span class="badge bg-info">
+                                                            <i class="bi bi-people-fill me-1"></i>
+                                                            <?php echo htmlspecialchars($subscription['space_name']); ?>
+                                                        </span>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
                                             <td><?php echo $subscription['currency']; ?> <?php echo number_format($subscription['cost'], 2); ?></td>
                                             <td>
                                                 <span class="badge <?php echo $subscription['billing_cycle'] == 'monthly' ? 'bg-primary' : 'bg-success'; ?>">
