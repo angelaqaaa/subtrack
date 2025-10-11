@@ -9,7 +9,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 // Log to file for debugging
-ini_set('error_log', __DIR__ . '/../debug.log');
+ini_set('error_log', __DIR__ . '/../logs/api_dashboard.log');
 
 // Set JSON response headers and enable CORS
 header('Content-Type: application/json');

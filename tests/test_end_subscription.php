@@ -2,8 +2,8 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'src/Config/database.php';
-require_once 'src/Models/SubscriptionModel.php';
+require_once __DIR__ . '/../src/Config/database.php';
+require_once __DIR__ . '/../src/Models/SubscriptionModel.php';
 
 $subscriptionModel = new SubscriptionModel($pdo);
 

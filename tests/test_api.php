@@ -5,7 +5,7 @@
  */
 
 session_start();
-require_once 'config/database.php';
+require_once __DIR__ . '/../src/Config/database.php';
 
 // Configuration
 $api_url = 'http://localhost:8000/api.php';

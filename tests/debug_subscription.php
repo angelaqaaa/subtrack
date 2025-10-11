@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'config/database.php';
-require_once 'models/SubscriptionModel.php';
+require_once __DIR__ . '/../src/Config/database.php';
+require_once __DIR__ . '/../src/Models/SubscriptionModel.php';
 
 echo "<h1>Subscription Creation Debug</h1>";
 

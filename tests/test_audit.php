@@ -2,8 +2,8 @@
 session_start();
 
 // Include required files
-require_once 'config/database.php';
-require_once 'utils/AuditLogger.php';
+require_once __DIR__ . '/../src/Config/database.php';
+require_once __DIR__ . '/../src/Utils/AuditLogger.php';
 
 // Test audit logging functionality
 echo "<h2>Phase 10 Audit Trail Test</h2>";
