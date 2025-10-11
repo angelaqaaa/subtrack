@@ -17,7 +17,7 @@ Both frontends coexist and are fully functional, accessing the same backend and 
 subtrack/
 ├── api/                      # RESTful JSON API endpoints for React
 ├── routes/                   # PHP MVC route handlers (entry points)
-├── public/                   # Legacy PHP pages + static assets
+├── public/                   # PHP frontend pages + static assets
 ├── src/                      # PHP backend (MVC architecture)
 │   ├── Controllers/          # Business logic
 │   ├── Models/               # Database operations

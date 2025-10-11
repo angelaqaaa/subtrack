@@ -134,14 +134,14 @@ subtrack/
 │   ├── dashboard.php            # Dashboard data and subscriptions
 │   ├── spaces.php               # Shared workspace management
 │   └── index.php                # API key-based access
-├── 📁 routes/                   # PHP MVC route handlers for legacy pages
-│   ├── auth.php                 # Legacy authentication routes
-│   ├── dashboard.php            # Legacy dashboard routes
+├── 📁 routes/                   # PHP MVC route handlers (server-rendered frontend)
+│   ├── auth.php                 # Authentication routes
+│   ├── dashboard.php            # Dashboard routes
 │   ├── insights.php             # Financial insights routes
 │   ├── space.php                # Space management routes
 │   ├── invitations.php          # Invitation handling routes
 │   └── categories.php           # Category management routes
-├── 📁 public/                   # Legacy PHP pages and static assets
+├── 📁 public/                   # PHP frontend pages and static assets
 │   ├── 📁 auth/                 # Login/registration pages
 │   ├── 📁 dashboard/            # PHP dashboard views
 │   ├── 📁 reports/              # Report generation pages
