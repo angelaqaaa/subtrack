@@ -27,7 +27,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Clear previous error messages
             clearFormErrors(this);
 
-            fetch('/routes/dashboard.php?action=add', {
+            // Get the form action URL (use form's action or default to dashboard)
+            const formAction = this.getAttribute('action') || '/routes/dashboard.php?action=add';
+
+            fetch(formAction, {
                 method: 'POST',
                 body: formData
             })
@@ -274,7 +277,7 @@ function updateCategoryChart(categoryData) {
 
     // Destroy existing chart if it exists
     if (window.categoryChart) {
-        window.categoryChart.destroy();
+        if (window.categoryChart && typeof window.categoryChart.destroy === "function") { window.categoryChart.destroy(); }
     }
 
     // If no data, hide chart
@@ -351,6 +354,18 @@ function showAlert(type, message) {
     alertDiv.style.right = '20px';
     alertDiv.style.zIndex = '9999';
     alertDiv.style.minWidth = '300px';
+
+    // Ensure background color is visible
+    if (type === 'success') {
+        alertDiv.style.backgroundColor = '#d1e7dd';
+        alertDiv.style.borderColor = '#badbcc';
+        alertDiv.style.color = '#0f5132';
+    } else if (type === 'danger') {
+        alertDiv.style.backgroundColor = '#f8d7da';
+        alertDiv.style.borderColor = '#f5c2c7';
+        alertDiv.style.color = '#842029';
+    }
+
     alertDiv.innerHTML = `
         <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
         ${message}

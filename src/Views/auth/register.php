@@ -6,7 +6,7 @@
     <title><?php echo isset($page_title) ? $page_title . ' - SubTrack' : 'SubTrack - Subscription Manager'; ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="css/style.css" rel="stylesheet">
+    <link href="/public/assets/css/style.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <div class="container">
@@ -25,7 +25,7 @@
                             <div class="alert alert-danger"><?php echo $errors['general']; ?></div>
                         <?php endif; ?>
 
-                        <form action="auth.php?action=register" method="post">
+                        <form action="/routes/auth.php?action=register" method="post">
                             <?php echo $csrf_token ? '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrf_token) . '">' : ''; ?>
 
                             <div class="mb-3">
@@ -64,7 +64,7 @@
                                 <input type="submit" class="btn btn-primary w-100" value="Register">
                             </div>
 
-                            <p class="text-center">Already have an account? <a href="auth.php?action=login">Login here</a>.</p>
+                            <p class="text-center">Already have an account? <a href="/routes/auth.php?action=login">Login here</a>.</p>
                         </form>
                     </div>
                 </div>

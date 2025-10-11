@@ -84,7 +84,7 @@
                                             <small class="text-muted">
                                                 <i class="bi bi-people me-1"></i><?php echo $space['member_count']; ?> member<?php echo $space['member_count'] !== 1 ? 's' : ''; ?>
                                             </small>
-                                            <a href="space.php?action=view&space_id=<?php echo $space['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                            <a href="/routes/space.php?action=view&space_id=<?php echo $space['id']; ?>" class="btn btn-outline-primary btn-sm">
                                                 <i class="bi bi-arrow-right me-1"></i>Enter
                                             </a>
                                         </div>
@@ -217,7 +217,7 @@
                                         </td>
                                         <td>
                                             <div class="btn-group btn-group-sm" role="group">
-                                                <a href="edit_subscription.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                <a href="/public/subscriptions/edit.php?id=<?php echo $subscription['id']; ?>" class="btn btn-outline-primary btn-sm">
                                                     <i class="bi bi-pencil"></i>
                                                 </a>
                                                 <?php if ($subscription['is_active']): ?>
@@ -313,7 +313,7 @@
                 <h5 class="modal-title">Add New Subscription</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="dashboard_mvc.php?action=add" method="post">
+            <form action="/routes/dashboard.php?action=add" method="post">
                 <?php echo $csrf_token ? '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrf_token) . '">' : ''; ?>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -406,7 +406,7 @@
                 <h5 class="modal-title">Create Shared Space</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="createSpaceForm" action="dashboard_mvc.php?action=create_space" method="post">
+            <form id="createSpaceForm" action="/routes/dashboard.php?action=create_space" method="post">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -553,7 +553,7 @@ document.getElementById('endSubscriptionForm').addEventListener('submit', functi
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Ending...';
 
-    fetch('dashboard_mvc.php?action=end_subscription', {
+    fetch('/routes/dashboard.php?action=end_subscription', {
         method: 'POST',
         body: formData
     })
@@ -590,7 +590,7 @@ document.getElementById('reactivateSubscriptionForm').addEventListener('submit',
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Reactivating...';
 
-    fetch('dashboard_mvc.php?action=reactivate_subscription', {
+    fetch('/routes/dashboard.php?action=reactivate_subscription', {
         method: 'POST',
         body: formData
     })
@@ -649,7 +649,7 @@ document.getElementById('createSpaceForm').addEventListener('submit', function(e
     submitButton.disabled = true;
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Creating...';
 
-    fetch('dashboard_mvc.php?action=create_space', {
+    fetch('/routes/dashboard.php?action=create_space', {
         method: 'POST',
         body: formData
     })

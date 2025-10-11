@@ -6,7 +6,7 @@
             <p class="text-muted">Personalized recommendations and educational content</p>
         </div>
         <div>
-            <a href="insights.php?action=education" class="btn btn-outline-primary">
+            <a href="/routes/insights.php?action=education" class="btn btn-outline-primary">
                 <i class="fas fa-graduation-cap"></i> Education Center
             </a>
         </div>
@@ -27,7 +27,7 @@
                             <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
                             <h5 class="text-muted">No insights available</h5>
                             <p class="text-muted">Add more subscriptions to get personalized financial insights.</p>
-                            <a href="dashboard_mvc.php" class="btn btn-primary">Add Subscriptions</a>
+                            <a href="/routes/dashboard.php" class="btn btn-primary">Add Subscriptions</a>
                         </div>
                     <?php else: ?>
                         <?php foreach ($insights as $insight): ?>
@@ -150,7 +150,7 @@
                     <?php else: ?>
                         <?php foreach ($featured_content as $content): ?>
                             <div class="mb-3">
-                                <a href="insights.php?action=content&slug=<?= $content['slug'] ?>"
+                                <a href="/routes/insights.php?action=content&slug=<?= $content['slug'] ?>"
                                    class="text-decoration-none">
                                     <h6 class="text-primary mb-1"><?= htmlspecialchars($content['title']) ?></h6>
                                 </a>
@@ -165,7 +165,7 @@
                                 </div>
                             </div>
                         <?php endforeach; ?>
-                        <a href="insights.php?action=education" class="btn btn-sm btn-outline-info w-100">
+                        <a href="/routes/insights.php?action=education" class="btn btn-sm btn-outline-info w-100">
                             View All Content
                         </a>
                     <?php endif; ?>
@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('action', action);
             formData.append('csrf_token', '<?= $csrf_token ?>');
 
-            fetch('insights.php?action=insight_action', {
+            fetch('/routes/insights.php?action=insight_action', {
                 method: 'POST',
                 body: formData
             })
@@ -242,14 +242,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => insightCard.remove(), 300);
 
                     // Show success message
-                    showAlert(data.message, 'success');
+                    showAlert('success', data.message);
                 } else {
-                    showAlert(data.message, 'danger');
+                    showAlert('danger', data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('An error occurred. Please try again.', 'danger');
+                showAlert('danger', 'An error occurred. Please try again.');
             });
         });
     });
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData(this);
 
-        fetch('insights.php?action=create_goal', {
+        fetch('/routes/insights.php?action=create_goal', {
             method: 'POST',
             body: formData
         })

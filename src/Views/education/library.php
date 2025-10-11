@@ -6,7 +6,7 @@
             <p class="text-muted">Learn about financial management and subscription optimization</p>
         </div>
         <div>
-            <a href="insights.php?action=dashboard" class="btn btn-outline-primary">
+            <a href="/routes/insights.php?action=dashboard" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left"></i> Back to Insights
             </a>
         </div>
@@ -16,12 +16,12 @@
     <div class="card shadow-sm mb-4">
         <div class="card-body py-3">
             <div class="d-flex flex-wrap gap-2">
-                <a href="insights.php?action=education"
+                <a href="/routes/insights.php?action=education"
                    class="btn <?= empty($selected_category) ? 'btn-primary' : 'btn-outline-primary' ?> btn-sm">
                     All Content
                 </a>
                 <?php foreach ($categories as $key => $label): ?>
-                    <a href="insights.php?action=education&category=<?= $key ?>"
+                    <a href="/routes/insights.php?action=education&category=<?= $key ?>"
                        class="btn <?= $selected_category === $key ? 'btn-primary' : 'btn-outline-primary' ?> btn-sm">
                         <?= htmlspecialchars($label) ?>
                     </a>
@@ -72,7 +72,7 @@
                             </div>
 
                             <h5 class="card-title">
-                                <a href="insights.php?action=content&slug=<?= $item['slug'] ?>"
+                                <a href="/routes/insights.php?action=content&slug=<?= $item['slug'] ?>"
                                    class="text-decoration-none">
                                     <?= htmlspecialchars($item['title']) ?>
                                 </a>
@@ -100,7 +100,7 @@
                         </div>
 
                         <div class="card-footer bg-transparent">
-                            <a href="insights.php?action=content&slug=<?= $item['slug'] ?>"
+                            <a href="/routes/insights.php?action=content&slug=<?= $item['slug'] ?>"
                                class="btn btn-primary btn-sm w-100">
                                 <i class="fas fa-book-open"></i> Read Article
                             </a>

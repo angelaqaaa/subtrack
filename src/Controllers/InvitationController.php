@@ -26,7 +26,7 @@ class InvitationController {
     public function dashboard() {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: auth.php?action=login");
+            header("location: /routes/auth.php?action=login");
             exit;
         }
 
@@ -36,7 +36,7 @@ class InvitationController {
         $pending_invitations = $this->invitationModel->getUserPendingInvitations($user_id);
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
@@ -57,7 +57,7 @@ class InvitationController {
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
             // Store token in session and redirect to login
             $_SESSION['pending_invitation_token'] = $token;
-            header("location: auth.php?action=login&redirect=invitation");
+            header("location: /routes/auth.php?action=login&redirect=invitation");
             exit;
         }
 
@@ -72,7 +72,7 @@ class InvitationController {
         }
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [
@@ -139,9 +139,9 @@ class InvitationController {
             );
 
             if ($action === 'accept') {
-                $result['redirect_url'] = "space.php?action=view&space_id=" . $result['space_id'];
+                $result['redirect_url'] = "/routes/space.php?action=view&space_id=" . $result['space_id'];
             } else {
-                $result['redirect_url'] = "invitations.php";
+                $result['redirect_url'] = "/routes/invitations.php";
             }
         }
 

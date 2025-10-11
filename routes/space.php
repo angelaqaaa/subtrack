@@ -18,7 +18,7 @@ switch($action) {
         if($space_id) {
             $spaceController->viewSpace($space_id);
         } else {
-            header("location: dashboard_mvc.php?error=invalid_space");
+            header("location: /routes/dashboard.php?error=invalid_space");
         }
         break;
 
@@ -27,23 +27,27 @@ switch($action) {
         break;
 
     case 'invite':
+        // This is a JSON endpoint - exit immediately after
         $spaceController->inviteUser();
-        break;
+        exit;
 
     case 'add_subscription':
+        // This is a JSON endpoint - exit immediately after
         $spaceController->addSpaceSubscription();
-        break;
+        exit;
 
     case 'quit':
+        // This is a JSON endpoint - exit immediately after
         $spaceController->quitSpace();
-        break;
+        exit;
 
     case 'remove_member':
+        // This is a JSON endpoint - exit immediately after
         $spaceController->removeMember();
-        break;
+        exit;
 
     default:
-        header("location: dashboard_mvc.php");
+        header("location: /routes/dashboard.php");
         break;
 }
 ?>

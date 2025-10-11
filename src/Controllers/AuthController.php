@@ -19,7 +19,7 @@ class AuthController {
      * Display registration form
      */
     public function showRegister() {
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
         $this->loadView('register', ['csrf_token' => $csrf_token, 'page_title' => 'Register']);
     }
 
@@ -36,7 +36,7 @@ class AuthController {
         if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
             $this->loadView('register', [
                 'error' => 'Invalid CSRF token. Please try again.',
-                'csrf_token' => $this->csrfHandler->generateToken(),
+                'csrf_token' => $this->csrfHandler->getToken(),
                 'page_title' => 'Register'
             ]);
             return;
@@ -78,7 +78,7 @@ class AuthController {
             'errors' => $errors,
             'username' => $username,
             'email' => $email,
-            'csrf_token' => $this->csrfHandler->generateToken(),
+            'csrf_token' => $this->csrfHandler->getToken(),
             'page_title' => 'Register'
         ]);
     }
@@ -93,7 +93,7 @@ class AuthController {
             exit;
         }
 
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
         $this->loadView('login', ['csrf_token' => $csrf_token, 'page_title' => 'Login']);
     }
 
@@ -116,7 +116,7 @@ class AuthController {
         if(!$this->csrfHandler->validateToken($_POST['csrf_token'] ?? '')) {
             $this->loadView('login', [
                 'error' => 'Invalid CSRF token. Please try again.',
-                'csrf_token' => $this->csrfHandler->generateToken(),
+                'csrf_token' => $this->csrfHandler->getToken(),
                 'page_title' => 'Login'
             ]);
             return;
@@ -161,7 +161,7 @@ class AuthController {
         $this->loadView('login', [
             'errors' => $errors,
             'username' => $username,
-            'csrf_token' => $this->csrfHandler->generateToken(),
+            'csrf_token' => $this->csrfHandler->getToken(),
             'page_title' => 'Login'
         ]);
     }

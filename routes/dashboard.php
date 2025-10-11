@@ -17,24 +17,29 @@ switch($action) {
         break;
 
     case 'add':
+        // This is a JSON endpoint - exit immediately after
         $dashboardController->addSubscription();
-        break;
+        exit;
 
     case 'delete':
+        // This is a JSON endpoint - exit immediately after
         $dashboardController->deleteSubscription();
-        break;
+        exit;
 
     case 'create_space':
+        // This is a JSON endpoint - exit immediately after
         $dashboardController->createSpace();
-        break;
+        exit;
 
     case 'end_subscription':
+        // This is a JSON endpoint - exit immediately after
         $dashboardController->endSubscription();
-        break;
+        exit;
 
     case 'reactivate_subscription':
+        // This is a JSON endpoint - exit immediately after
         $dashboardController->reactivateSubscription();
-        break;
+        exit;
 
     default:
         $dashboardController->index();

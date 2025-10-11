@@ -26,12 +26,14 @@ switch($action) {
         break;
 
     case 'process':
+        // This is a JSON endpoint - exit immediately after
         $invitationController->processResponse();
-        break;
+        exit;
 
     case 'send':
+        // This is a JSON endpoint - exit immediately after
         $invitationController->sendInvitation();
-        break;
+        exit;
 
     default:
         $invitationController->dashboard();

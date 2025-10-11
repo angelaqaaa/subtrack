@@ -184,7 +184,7 @@
                     </h5>
                 </div>
                 <div class="card-body text-center">
-                    <canvas id="categoryChart" width="300" height="300" data-categories='<?php echo json_encode($category_totals); ?>'></canvas>
+                    <canvas id="categoryChart" style="max-height: 250px;" data-categories='<?php echo json_encode($category_totals); ?>'></canvas>
                     <?php if(empty($category_totals)): ?>
                         <p class="text-muted mt-3">Add subscriptions to see spending breakdown</p>
                     <?php endif; ?>
@@ -294,7 +294,7 @@
                 <h5 class="modal-title">Add Subscription to <?php echo htmlspecialchars($space['name']); ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="space.php?action=add_subscription" method="post">
+            <form action="/routes/space.php?action=add_subscription" method="post">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                 <input type="hidden" name="space_id" value="<?php echo $space['id']; ?>">
                 <div class="modal-body">
@@ -377,7 +377,7 @@
                 <h5 class="modal-title">Invite User to <?php echo htmlspecialchars($space['name']); ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form id="inviteUserForm" action="space.php?action=invite" method="post">
+            <form id="inviteUserForm" action="/routes/space.php?action=invite" method="post">
                 <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                 <input type="hidden" name="space_id" value="<?php echo $space['id']; ?>">
                 <div class="modal-body">
@@ -486,9 +486,8 @@ if (quitSpaceBtn) {
             console.error('quitSpaceModal element not found');
         }
     });
-} else {
-    console.log('quitSpaceBtn not found');
 }
+// Button may not exist if user is the owner - this is normal
 
 // Handle confirm quit space
 document.getElementById('confirmQuitSpace')?.addEventListener('click', function() {
@@ -501,7 +500,7 @@ document.getElementById('confirmQuitSpace')?.addEventListener('click', function(
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Leaving...';
 
     // Send quit request
-    fetch('space.php?action=quit', {
+    fetch('/routes/space.php?action=quit', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -552,7 +551,7 @@ document.getElementById('confirmRemoveMember')?.addEventListener('click', functi
     submitButton.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Removing...';
 
     // Send remove request
-    fetch('space.php?action=remove_member', {
+    fetch('/routes/space.php?action=remove_member', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -597,7 +596,7 @@ document.getElementById('inviteUserForm')?.addEventListener('submit', function(e
     const formData = new FormData(form);
 
     // Send invitation
-    fetch('space.php?action=invite', {
+    fetch('/routes/space.php?action=invite', {
         method: 'POST',
         body: formData
     })

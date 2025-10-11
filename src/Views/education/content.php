@@ -3,10 +3,10 @@
     <nav aria-label="breadcrumb" class="mb-4">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="insights.php?action=dashboard">Insights</a>
+                <a href="/routes/insights.php?action=dashboard">Insights</a>
             </li>
             <li class="breadcrumb-item">
-                <a href="insights.php?action=education">Education Center</a>
+                <a href="/routes/insights.php?action=education">Education Center</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
                 <?= htmlspecialchars($content['title']) ?>
@@ -95,9 +95,9 @@
                         </div>
                         <div class="col-auto">
                             <div class="btn-group" role="group">
-                                <button class="btn btn-outline-primary btn-sm" id="bookmarkContent"
+                                <button class="btn btn-<?= ($user_progress['status'] ?? '') === 'bookmarked' ? 'primary' : 'outline-primary' ?> btn-sm" id="bookmarkContent"
                                         data-content-id="<?= $content['id'] ?>">
-                                    <i class="fas fa-bookmark"></i> Bookmark
+                                    <i class="fas fa-bookmark"></i> <?= ($user_progress['status'] ?? '') === 'bookmarked' ? 'Bookmarked' : 'Bookmark' ?>
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" onclick="window.print()">
                                     <i class="fas fa-print"></i> Print
@@ -156,7 +156,7 @@
                         <?php foreach ($related_content as $related): ?>
                             <?php if ($related['id'] != $content['id']): ?>
                                 <div class="p-3 border-bottom">
-                                    <a href="insights.php?action=content&slug=<?= $related['slug'] ?>"
+                                    <a href="/routes/insights.php?action=content&slug=<?= $related['slug'] ?>"
                                        class="text-decoration-none">
                                         <h6 class="text-primary mb-1"><?= htmlspecialchars($related['title']) ?></h6>
                                     </a>
@@ -303,74 +303,88 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('content_id', contentId);
         formData.append('csrf_token', '<?= $csrf_token ?>');
 
-        fetch('insights.php?action=mark_completed', {
+        fetch('/routes/insights.php?action=mark_completed', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            // Check if response is ok before parsing
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text(); // Get as text first to debug
+        })
+        .then(text => {
+            try {
+                const data = JSON.parse(text);
+                if (data.status === 'success') {
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-secondary');
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-check"></i> Completed';
+
+                    // Show completion message
+                    document.getElementById('completionMessage').classList.remove('d-none');
+
+                    // Update progress to 100%
+                    readingProgress = 100;
+                    progressPercent.textContent = '100%';
+                    progressCircle.style.strokeDashoffset = 0;
+
+                    // Scroll to completion message
+                    document.getElementById('completionMessage').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                } else {
+                    showAlert('danger', data.message);
+                }
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                console.error('Response text:', text);
+                showAlert('danger', 'Server returned invalid response');
+            }
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+            showAlert('danger', 'An error occurred. Please try again.');
+        });
+    });
+
+    // Bookmark functionality
+    document.getElementById('bookmarkContent').addEventListener('click', function() {
+        const button = this;
+        const contentId = button.dataset.contentId;
+
+        const formData = new FormData();
+        formData.append('content_id', contentId);
+        formData.append('csrf_token', '<?= $csrf_token ?>');
+
+        fetch('/routes/insights.php?action=toggle_bookmark', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                button.classList.remove('btn-success');
-                button.classList.add('btn-secondary');
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-check"></i> Completed';
-
-                // Show completion message
-                document.getElementById('completionMessage').classList.remove('d-none');
-
-                // Update progress to 100%
-                readingProgress = 100;
-                progressPercent.textContent = '100%';
-                progressCircle.style.strokeDashoffset = 0;
-
-                // Scroll to completion message
-                document.getElementById('completionMessage').scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center'
-                });
+                if (data.is_bookmarked) {
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary');
+                    button.innerHTML = '<i class="fas fa-bookmark"></i> Bookmarked';
+                } else {
+                    button.classList.remove('btn-primary');
+                    button.classList.add('btn-outline-primary');
+                    button.innerHTML = '<i class="fas fa-bookmark"></i> Bookmark';
+                }
+                showAlert('success', data.message);
             } else {
-                showAlert(data.message, 'danger');
+                showAlert('danger', data.message);
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showAlert('An error occurred. Please try again.', 'danger');
+            showAlert('danger', 'An error occurred. Please try again.');
         });
     });
-
-    // Bookmark functionality (placeholder)
-    document.getElementById('bookmarkContent').addEventListener('click', function() {
-        const button = this;
-
-        if (button.classList.contains('btn-outline-primary')) {
-            button.classList.remove('btn-outline-primary');
-            button.classList.add('btn-primary');
-            button.innerHTML = '<i class="fas fa-bookmark"></i> Bookmarked';
-            showAlert('Article bookmarked!', 'success');
-        } else {
-            button.classList.remove('btn-primary');
-            button.classList.add('btn-outline-primary');
-            button.innerHTML = '<i class="fas fa-bookmark"></i> Bookmark';
-            showAlert('Bookmark removed!', 'info');
-        }
-    });
 });
-
-function showAlert(message, type) {
-    const alertHtml = `
-        <div class="alert alert-${type} alert-dismissible fade show position-fixed"
-             style="top: 20px; right: 20px; z-index: 1050; max-width: 350px;" role="alert">
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('afterbegin', alertHtml);
-
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        const alert = document.querySelector('.alert');
-        if (alert) alert.remove();
-    }, 3000);
-}
 </script>

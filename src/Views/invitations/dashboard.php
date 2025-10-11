@@ -6,7 +6,7 @@
             <p class="text-muted">Manage your space invitations</p>
         </div>
         <div>
-            <a href="dashboard_mvc.php" class="btn btn-outline-primary">
+            <a href="/routes/dashboard.php" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left"></i> Back to Dashboard
             </a>
         </div>
@@ -29,7 +29,7 @@
                                 You don't have any pending space invitations at the moment.<br>
                                 When someone invites you to their space, it will appear here.
                             </p>
-                            <a href="dashboard_mvc.php" class="btn btn-primary">
+                            <a href="/routes/dashboard.php" class="btn btn-primary">
                                 <i class="bi bi-house"></i> Go to Dashboard
                             </a>
                         </div>
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
         });
 
-        fetch('invitations.php?action=process', {
+        fetch('/routes/invitations.php?action=process', {
             method: 'POST',
             body: formData
         })

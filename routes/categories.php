@@ -17,20 +17,24 @@ switch($action) {
         break;
 
     case 'create':
+        // This is a JSON endpoint - exit immediately after
         $categoryController->createCategory();
-        break;
+        exit;
 
     case 'update':
+        // This is a JSON endpoint - exit immediately after
         $categoryController->updateCategory();
-        break;
+        exit;
 
     case 'delete':
+        // This is a JSON endpoint - exit immediately after
         $categoryController->deleteCategory();
-        break;
+        exit;
 
     case 'list':
+        // This is a JSON endpoint - exit immediately after
         $categoryController->getCategories();
-        break;
+        exit;
 
     default:
         $categoryController->index();

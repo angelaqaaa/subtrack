@@ -23,7 +23,7 @@ class CategoryController {
     public function index() {
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
-            header("location: auth.php?action=login");
+            header("location: /routes/auth.php?action=login");
             exit;
         }
 
@@ -34,7 +34,7 @@ class CategoryController {
         $usage_stats = $this->categoryModel->getCategoryUsage($user_id);
 
         // Generate CSRF token
-        $csrf_token = $this->csrfHandler->generateToken();
+        $csrf_token = $this->csrfHandler->getToken();
 
         // Prepare data for view
         $view_data = [

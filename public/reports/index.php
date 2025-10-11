@@ -2,7 +2,7 @@
 session_start();
 
 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    header("location: ../auth/login.php");
+    header("location: /public/auth/login.php");
     exit;
 }
 
@@ -12,8 +12,8 @@ require_once "../../src/Config/database.php";
 $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d', strtotime('-12 months'));
 
-// Fetch filtered subscriptions
-$sql = "SELECT * FROM subscriptions WHERE user_id = ? AND start_date BETWEEN ? AND ? ORDER BY start_date DESC";
+// Fetch filtered subscriptions (only active ones)
+$sql = "SELECT * FROM subscriptions WHERE user_id = ? AND start_date BETWEEN ? AND ? AND is_active = 1 ORDER BY start_date DESC";
 $filtered_subscriptions = [];
 
 if($stmt = $pdo->prepare($sql)){
@@ -46,12 +46,12 @@ foreach($filtered_subscriptions as $subscription){
     $category_breakdown[$category] += $monthly_cost;
 }
 
-// Fetch historical spending data (last 12 months)
+// Fetch historical spending data (last 12 months, only active subscriptions)
 $historical_sql = "SELECT
     DATE_FORMAT(start_date, '%Y-%m') as month_key,
     SUM(CASE WHEN billing_cycle = 'monthly' THEN cost ELSE cost/12 END) as total_monthly_cost
 FROM subscriptions
-WHERE user_id = ? AND start_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+WHERE user_id = ? AND start_date >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH) AND is_active = 1
 GROUP BY DATE_FORMAT(start_date, '%Y-%m')
 ORDER BY month_key ASC";
 
@@ -87,7 +87,7 @@ include "../../src/Views/layouts/header.php";
                 <h1 class="h2">
                     <i class="bi bi-graph-up me-2"></i>Reports & Analytics
                 </h1>
-                <a href="export.php?start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>"
+                <a href="/public/reports/export.php?start_date=<?php echo urlencode($start_date); ?>&end_date=<?php echo urlencode($end_date); ?>"
                    class="btn btn-success">
                     <i class="bi bi-download me-1"></i>Export CSV
                 </a>
@@ -105,7 +105,7 @@ include "../../src/Views/layouts/header.php";
                     </h5>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="reports.php" class="row g-3">
+                    <form method="GET" action="/public/reports/index.php" class="row g-3">
                         <div class="col-md-4">
                             <label for="start_date" class="form-label">Start Date</label>
                             <input type="date" class="form-control" id="start_date" name="start_date"
@@ -226,7 +226,7 @@ include "../../src/Views/layouts/header.php";
                         <div class="text-center py-4">
                             <i class="bi bi-inbox display-4 text-muted"></i>
                             <p class="text-muted mt-2">No subscriptions found for the selected date range.</p>
-                            <p class="text-muted">Try adjusting your date filter or <a href="dashboard.php">add some subscriptions</a>.</p>
+                            <p class="text-muted">Try adjusting your date filter or <a href="/routes/dashboard.php">add some subscriptions</a>.</p>
                         </div>
                     <?php else: ?>
                         <div class="table-responsive">

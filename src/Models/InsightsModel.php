@@ -224,10 +224,12 @@ class InsightsModel {
 
         // Insert new insights
         foreach ($insights as $insight) {
-            // Check if similar insight already exists by title and type
+            // Check if similar insight already exists by title and type (including dismissed/applied)
+            // This prevents recreating insights the user has already dismissed
             $stmt = $this->pdo->prepare("
-                SELECT id FROM insights
-                WHERE user_id = ? AND type = ? AND title = ? AND status = 'active'
+                SELECT id, status FROM insights
+                WHERE user_id = ? AND type = ? AND title = ?
+                    AND created_at > DATE_SUB(NOW(), INTERVAL 30 DAY)
                 LIMIT 1
             ");
             $stmt->execute([
@@ -236,7 +238,10 @@ class InsightsModel {
                 $insight['title']
             ]);
 
-            if (!$stmt->fetch()) {
+            $existing = $stmt->fetch();
+
+            // Only insert if no recent insight exists (active, dismissed, or applied)
+            if (!$existing) {
                 // Insert new insight
                 $stmt = $this->pdo->prepare("
                     INSERT INTO insights (user_id, type, title, description, impact_score, data, expires_at)
@@ -337,6 +342,15 @@ class InsightsModel {
     /**
      * Track user's educational progress
      */
+    public function getUserEducationalProgress($user_id, $content_id) {
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM user_education_progress
+            WHERE user_id = ? AND content_id = ?
+        ");
+        $stmt->execute([$user_id, $content_id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
     public function updateEducationalProgress($user_id, $content_id, $status, $progress_percent = 0) {
         $stmt = $this->pdo->prepare("
             INSERT INTO user_education_progress (user_id, content_id, status, progress_percent, completed_at)

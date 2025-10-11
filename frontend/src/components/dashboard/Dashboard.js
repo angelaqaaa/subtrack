@@ -102,6 +102,8 @@ const Dashboard = () => {
         ...prev,
         insights: insightsRes.data?.insights || []
       }));
+      // Set timestamp to trigger refresh on other pages
+      localStorage.setItem('insightsLastModified', new Date().toISOString());
     } catch (err) {
       console.error('Failed to dismiss insight:', err);
     }
