@@ -1,45 +1,29 @@
+# Dependencies
 /vendor/
 node_modules/
 npm-debug.log
 yarn-error.log
 
-# Laravel 4 specific
-bootstrap/compiled.php
-app/storage/
-
-# Laravel 5 & Lumen specific
-public/storage
-public/hot
-
-# Laravel 5 & Lumen specific with changed public path
-public_html/storage
-public_html/hot
-
-storage/*.key
-.env
-Homestead.yaml
-Homestead.json
-/.vagrant
-.phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
-.phpactor.json
-auth.json
-
-# Temporary files
-.DS_Store
-*.log
-*.tmp
-
 # Environment files
 .env
 .env.local
+.env.backup
+.env.production
 .env.development.local
 .env.test.local
 .env.production.local
+frontend/.env
+
+# Logs
+*.log
+logs/*.log
+debug.log
+
+# Temporary files
+.DS_Store
+*.tmp
+Thumbs.db
+ehthumbs.db
 
 # IDE files
 .vscode/
@@ -47,18 +31,32 @@ auth.json
 *.swp
 *.swo
 
-# OS generated files
-Thumbs.db
-ehthumbs.db
+# Build artifacts
+/public/build
+frontend/build/
 
-# Test results (exclude personal test results)
+# Test files (keeping test directories but ignoring specific test results)
 TEST_RESULTS.md
-tests/debug_*.php
-tests/test_*.php
-dev-tools/
+tests/output/
 
-# Cookies and session files
+# Session and cache
 cookies.txt
+.phpunit.result.cache
 
-# Frontend environment file (contains actual configuration)
-frontend/.env
+# Scripts (keep directory structure but ignore user-specific scripts)
+scripts/local_*
+
+# Laravel legacy (can be removed if not using Laravel)
+bootstrap/compiled.php
+app/storage/
+public/storage
+public/hot
+public_html/storage
+public_html/hot
+storage/*.key
+Homestead.yaml
+Homestead.json
+/.vagrant
+/storage/pail
+.phpactor.json
+auth.json
