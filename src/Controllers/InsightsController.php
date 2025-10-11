@@ -71,6 +71,18 @@ class InsightsController {
         // Get content
         $content = $this->insightsModel->getEducationalContent($category, false, 20);
 
+        // Get user progress for all content items
+        $progress_map = [];
+        foreach ($content as $item) {
+            $progress = $this->insightsModel->getUserEducationalProgress($user_id, $item['id']);
+            if ($progress) {
+                $progress_map[$item['id']] = [
+                    'status' => $progress['status'],
+                    'progress_percent' => $progress['progress_percent']
+                ];
+            }
+        }
+
         // Get categories for filter
         $categories = [
             'budgeting' => 'Budgeting',
@@ -85,6 +97,7 @@ class InsightsController {
         // Prepare data for view
         $view_data = [
             'content' => $content,
+            'progress_map' => $progress_map,
             'categories' => $categories,
             'selected_category' => $category,
             'csrf_token' => $csrf_token,

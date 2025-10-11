@@ -65,17 +65,26 @@ class SubscriptionModel {
 
     /**
      * Get only active subscriptions for a user (for insights and calculations)
+     * Includes both personal and space subscriptions
      */
     public function getActiveSubscriptionsByUser($user_id) {
-        $sql = "SELECT * FROM subscriptions
-                WHERE user_id = ?
-                AND space_id IS NULL
-                AND is_active = TRUE
-                AND (end_date IS NULL OR end_date > NOW())
-                ORDER BY created_at DESC";
+        $sql = "SELECT s.*, sp.name as space_name, u.username as created_by_username,
+                       CASE WHEN s.space_id IS NULL THEN 'personal' ELSE 'space' END as subscription_type
+                FROM subscriptions s
+                LEFT JOIN spaces sp ON s.space_id = sp.id
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE (
+                    (s.space_id IS NULL AND s.user_id = ?)
+                    OR
+                    (s.space_id IN (SELECT space_id FROM space_users WHERE user_id = ?))
+                )
+                AND s.is_active = TRUE
+                AND (s.end_date IS NULL OR s.end_date > NOW())
+                ORDER BY s.created_at DESC";
 
         if($stmt = $this->pdo->prepare($sql)) {
             $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
 
             if($stmt->execute()) {
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -87,16 +96,25 @@ class SubscriptionModel {
 
     /**
      * Get ended subscriptions for separate insights
+     * Includes both personal and space subscriptions
      */
     public function getEndedSubscriptionsByUser($user_id) {
-        $sql = "SELECT * FROM subscriptions
-                WHERE user_id = ?
-                AND space_id IS NULL
-                AND (is_active = FALSE OR end_date <= NOW())
-                ORDER BY end_date DESC, created_at DESC";
+        $sql = "SELECT s.*, sp.name as space_name, u.username as created_by_username,
+                       CASE WHEN s.space_id IS NULL THEN 'personal' ELSE 'space' END as subscription_type
+                FROM subscriptions s
+                LEFT JOIN spaces sp ON s.space_id = sp.id
+                LEFT JOIN users u ON s.user_id = u.id
+                WHERE (
+                    (s.space_id IS NULL AND s.user_id = ?)
+                    OR
+                    (s.space_id IN (SELECT space_id FROM space_users WHERE user_id = ?))
+                )
+                AND (s.is_active = FALSE OR s.end_date <= NOW())
+                ORDER BY s.end_date DESC, s.created_at DESC";
 
         if($stmt = $this->pdo->prepare($sql)) {
             $stmt->bindParam(1, $user_id, PDO::PARAM_INT);
+            $stmt->bindParam(2, $user_id, PDO::PARAM_INT);
 
             if($stmt->execute()) {
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);

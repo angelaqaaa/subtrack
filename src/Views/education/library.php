@@ -69,6 +69,23 @@
                                 <span class="badge bg-light text-dark ms-1">
                                     <?= ucfirst($item['difficulty_level']) ?>
                                 </span>
+
+                                <?php if (isset($progress_map[$item['id']])): ?>
+                                    <?php $status = $progress_map[$item['id']]['status']; ?>
+                                    <?php if ($status === 'completed'): ?>
+                                        <span class="badge bg-success ms-1" title="Completed">
+                                            <i class="bi bi-check-circle-fill"></i> Completed
+                                        </span>
+                                    <?php elseif ($status === 'bookmarked'): ?>
+                                        <span class="badge bg-warning ms-1" title="Bookmarked">
+                                            <i class="bi bi-bookmark-fill"></i> Bookmarked
+                                        </span>
+                                    <?php elseif ($status === 'started'): ?>
+                                        <span class="badge bg-info ms-1" title="In Progress">
+                                            <i class="bi bi-hourglass-split"></i> In Progress
+                                        </span>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
 
                             <h5 class="card-title">

@@ -84,6 +84,11 @@
                                     <tr>
                                         <td>
                                             <strong><?php echo htmlspecialchars($sub['service_name']); ?></strong>
+                                            <?php if ($sub['subscription_type'] === 'space'): ?>
+                                                <br><span class="badge bg-info">
+                                                    <i class="bi bi-people-fill"></i> <?php echo htmlspecialchars($sub['space_name']); ?>
+                                                </span>
+                                            <?php endif; ?>
                                             <br><small class="text-muted"><?php echo htmlspecialchars($sub['category'] ?: 'Other'); ?></small>
                                         </td>
                                         <td>
@@ -139,6 +144,11 @@
                                     <tr class="table-secondary">
                                         <td>
                                             <strong><?php echo htmlspecialchars($sub['service_name']); ?></strong>
+                                            <?php if ($sub['subscription_type'] === 'space'): ?>
+                                                <br><span class="badge bg-info">
+                                                    <i class="bi bi-people-fill"></i> <?php echo htmlspecialchars($sub['space_name']); ?>
+                                                </span>
+                                            <?php endif; ?>
                                             <br><small class="text-muted"><?php echo htmlspecialchars($sub['category'] ?: 'Other'); ?></small>
                                             <?php if($sub['cancellation_reason']): ?>
                                                 <br><small class="text-muted" title="Reason: <?php echo htmlspecialchars($sub['cancellation_reason']); ?>">
