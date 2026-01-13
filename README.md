@@ -1,4 +1,4 @@
-# SubTrack 🚀
+# SubTrack 
 
 > **A comprehensive subscription management platform featuring advanced security, collaborative workspaces, and modern full-stack architecture.**
 
@@ -10,34 +10,34 @@
 
 SubTrack is an enterprise-grade subscription management and analytics platform that combines a modern React SPA with a robust PHP backend. Designed for both individual users and collaborative teams, it offers advanced security features, real-time collaboration, and comprehensive analytics.
 
-## 🌟 Key Features
+## Key Features
 
-### 🔐 **Enterprise Security**
+### **Enterprise Security**
 - **Two-Factor Authentication (2FA)** with TOTP algorithm and backup codes
 - **Advanced Session Management** with security controls and audit logging
 - **CSRF Protection** using cryptographically secure tokens
 - **Role-Based Access Control (RBAC)** for multi-tenant workspaces
 - **Comprehensive Audit Trail** with IP tracking and user agent logging
 
-### 👥 **Collaborative Workspaces**
+### **Collaborative Workspaces**
 - **Shared Spaces** for team subscription management
 - **Invitation System** with email workflows and role assignments
 - **Real-time Collaboration** with member management and permissions
 - **Multi-tenant Architecture** with secure data isolation
 
-### 📊 **Advanced Analytics**
+### **Advanced Analytics**
 - **Interactive Dashboards** with Chart.js visualizations
 - **Spending Trends Analysis** with category breakdowns
 - **PDF Export Capabilities** for reports and documentation
 - **Custom Date Range Filtering** and data insights
 
-### 🏗️ **Modern Architecture**
+### **Modern Architecture**
 - **Hybrid Frontend**: React 19.1.1 SPA + PHP server-rendered pages
 - **RESTful API Design** with consistent endpoint patterns
 - **Database Migrations** with versioned schema management
 - **Environment-Based Configuration** for deployment flexibility
 
-## 🏁 Quick Start
+## Quick Start
 
 ### Prerequisites
 - **PHP 8.1+** with `pdo_mysql`, `mbstring`, and `json` extensions
@@ -129,28 +129,28 @@ cd frontend && npm install && npm start
 ### Project Structure
 ```
 subtrack/
-├── 📁 api/                      # RESTful API endpoints for React frontend
+├── api/                      # RESTful API endpoints for React frontend
 │   ├── auth.php                 # Authentication (login, register, 2FA)
 │   ├── dashboard.php            # Dashboard data and subscriptions
 │   ├── spaces.php               # Shared workspace management
 │   └── index.php                # API key-based access
-├── 📁 routes/                   # PHP MVC route handlers (server-rendered frontend)
+├── routes/                   # PHP MVC route handlers (server-rendered frontend)
 │   ├── auth.php                 # Authentication routes
 │   ├── dashboard.php            # Dashboard routes
 │   ├── insights.php             # Financial insights routes
 │   ├── space.php                # Space management routes
 │   ├── invitations.php          # Invitation handling routes
 │   └── categories.php           # Category management routes
-├── 📁 public/                   # PHP frontend pages and static assets
-│   ├── 📁 auth/                 # Login/registration pages
-│   ├── 📁 dashboard/            # PHP dashboard views
-│   ├── 📁 reports/              # Report generation pages
-│   ├── 📁 settings/             # Settings pages (API keys)
-│   ├── 📁 subscriptions/        # Subscription CRUD pages
-│   └── 📁 assets/               # CSS, JavaScript, images
-├── 📁 frontend/                 # React SPA application
-│   ├── 📁 src/
-│   │   ├── 📁 components/       # React components by feature
+├── public/                   # PHP frontend pages and static assets
+│   ├── auth/                 # Login/registration pages
+│   ├── dashboard/            # PHP dashboard views
+│   ├── reports/              # Report generation pages
+│   ├── settings/             # Settings pages (API keys)
+│   ├── subscriptions/        # Subscription CRUD pages
+│   └── assets/               # CSS, JavaScript, images
+├── frontend/                 # React SPA application
+│   ├── src/
+│   │   ├── components/       # React components by feature
 │   │   │   ├── auth/            # Login, Register
 │   │   │   ├── dashboard/       # Dashboard widgets
 │   │   │   ├── spaces/          # Workspace management
@@ -160,51 +160,49 @@ subtrack/
 │   │   │   ├── insights/        # Financial insights
 │   │   │   ├── categories/      # Category management
 │   │   │   └── layout/          # Navigation, common layouts
-│   │   ├── 📁 contexts/         # React Context providers (AuthContext)
-│   │   ├── 📁 services/         # API integration layer (Axios)
-│   │   └── 📁 utils/            # Utility functions (ActivityLogger)
-│   └── 📄 package.json          # Frontend dependencies
-├── 📁 src/                      # PHP backend MVC structure
-│   ├── 📁 Controllers/          # Business logic controllers
+│   │   ├── contexts/         # React Context providers (AuthContext)
+│   │   ├── services/         # API integration layer (Axios)
+│   │   └── utils/            # Utility functions (ActivityLogger)
+│   └── package.json          # Frontend dependencies
+├── src/                      # PHP backend MVC structure
+│   ├── Controllers/          # Business logic controllers
 │   │   ├── AuthController.php   # Authentication logic
 │   │   ├── DashboardController.php
 │   │   ├── SpaceController.php
 │   │   ├── InsightsController.php
 │   │   ├── InvitationController.php
 │   │   └── CategoryController.php
-│   ├── 📁 Models/               # Data access models
+│   ├── Models/               # Data access models
 │   │   ├── UserModel.php        # User CRUD, 2FA logic
 │   │   ├── SubscriptionModel.php
 │   │   ├── SpaceModel.php
 │   │   ├── InsightsModel.php
 │   │   ├── InvitationModel.php
 │   │   └── CategoryModel.php
-│   ├── 📁 Views/                # Server-rendered templates
+│   ├── Views/                # Server-rendered templates
 │   │   ├── auth/, dashboard/, spaces/, etc.
 │   │   └── layouts/             # Header, footer templates
-│   ├── 📁 Config/               # Configuration classes
+│   ├── Config/               # Configuration classes
 │   │   ├── database.php         # PDO connection
 │   │   └── csrf.php             # CSRF token handler
-│   └── 📁 Utils/                # Utility classes
+│   └── Utils/                # Utility classes
 │       └── AuditLogger.php      # Activity logging
-├── 📁 database/migrations/      # Versioned SQL schema files
-├── 📁 tests/                    # PHP testing utilities
+├── database/migrations/      # Versioned SQL schema files
+├── tests/                    # PHP testing utilities
 │   ├── test_api.php             # API endpoint tests
 │   ├── test_audit.php           # Audit logging tests
 │   ├── test_phase11.php         # Insights feature tests
 │   ├── test_end_subscription.php
 │   ├── debug_subscription.php
 │   └── debug_insights.php
-├── 📁 logs/                     # Application logs (gitignored)
-├── 📁 scripts/                  # Utility scripts
-├── 📁 docs/                     # Additional documentation
-├── 📄 index.php                 # Landing page
-├── 📄 .env.example              # Environment configuration template
-├── 📄 ARCHITECTURE.md           # Detailed architecture documentation
-└── 📄 CLAUDE.md                 # Development guidelines for AI assistance
+├── logs/                     # Application logs (gitignored)
+├── scripts/                  # Utility scripts
+├── docs/                     # Additional documentation
+├── index.php                 # Landing page
+└── .env.example              # Environment configuration template
 ```
 
-## 🔐 Security Features
+## Security Features
 
 ### Authentication & Authorization
 - **Multi-factor Authentication**: TOTP-based 2FA with QR code setup
@@ -222,7 +220,7 @@ subtrack/
 - **Rate Limiting**: API endpoint protection (configurable)
 - **Session Security**: HttpOnly, Secure, SameSite cookie attributes
 
-## 📊 API Documentation
+## API Documentation
 
 ### Authentication Endpoints (`/api/auth.php`)
 ```http
@@ -290,7 +288,7 @@ const subResponse = await fetch('/api/dashboard.php?action=add_subscription', {
 });
 ```
 
-## 🧪 Testing
+## Testing
 
 ### PHP Backend Tests
 ```bash
@@ -325,7 +323,7 @@ npm test -- --watch
 npm test -- --coverage
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -375,7 +373,7 @@ npm install
 - **React Console**: Browser DevTools Console
 - **Audit Logs**: Database `audit_logs` table
 
-## 🤝 Contributing
+## Contributing
 
 ### Development Workflow
 1. Fork the repository
@@ -393,18 +391,17 @@ npm install
 - **Documentation**: Update README and inline comments for new features
 - **Git Commits**: Use conventional commit messages
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙋‍♂️ Support
+## Support
 
 For questions, issues, or contributions:
 - **GitHub Issues**: [Report bugs or request features](https://github.com/angelaqaaa/subtrack/issues)
-- **Documentation**: See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture
 - **Security Issues**: Please report privately via GitHub Security Advisories
 
-## 🌟 Acknowledgments
+## Acknowledgments
 
 - Built with modern web technologies and best practices
 - Inspired by the need for better subscription management tools
