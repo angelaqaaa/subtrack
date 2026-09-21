@@ -116,7 +116,7 @@ cd frontend && npm install && npm start
 - **PHP 8+** with modern OOP patterns and MVC architecture
 - **PDO** with prepared statements for secure database access
 - **Custom CSRF Handler** with timing attack protection
-- **Session Security** with HttpOnly, Secure, and SameSite cookies
+- **Session Security** with HttpOnly and SameSite cookies
 - **TOTP Algorithm** for two-factor authentication
 - **Audit Logger** for comprehensive activity tracking
 
