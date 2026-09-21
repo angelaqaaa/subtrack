@@ -8,11 +8,11 @@
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?logo=bootstrap)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-SubTrack is an enterprise-grade subscription management and analytics platform that combines a modern React SPA with a robust PHP backend. Designed for both individual users and collaborative teams, it offers advanced security features, real-time collaboration, and comprehensive analytics.
+SubTrack is a subscription management and analytics platform that combines a modern React SPA with a robust PHP backend. Designed for both individual users and collaborative teams, it offers advanced security features, shared spaces with role-based access, and comprehensive analytics.
 
 ## Key Features
 
-### **Enterprise Security**
+### **Security**
 - **Two-Factor Authentication (2FA)** with TOTP algorithm and backup codes
 - **Advanced Session Management** with security controls and audit logging
 - **CSRF Protection** using cryptographically secure tokens
@@ -21,8 +21,8 @@ SubTrack is an enterprise-grade subscription management and analytics platform t
 
 ### **Collaborative Workspaces**
 - **Shared Spaces** for team subscription management
-- **Invitation System** with email workflows and role assignments
-- **Real-time Collaboration** with member management and permissions
+- **Invitation System** with in-app invites and role assignments
+- **Member Management** with per-space roles and permissions
 - **Multi-tenant Architecture** with secure data isolation
 
 ### **Advanced Analytics**
@@ -206,9 +206,9 @@ subtrack/
 
 ### Authentication & Authorization
 - **Multi-factor Authentication**: TOTP-based 2FA with QR code setup
-- **Backup Codes**: 8 one-time recovery codes (bcrypt hashed)
+- **Backup Codes**: 10 one-time recovery codes (bcrypt hashed)
 - **Secure Password Handling**: bcrypt hashing with salt
-- **Session Management**: Secure cookies with regeneration
+- **Session Management**: Login state tracked in PHP sessions
 - **CSRF Protection**: Token-based with timing attack prevention
 - **Role-Based Access**: Granular permissions for shared spaces (admin, editor, viewer)
 
@@ -217,8 +217,8 @@ subtrack/
 - **XSS Protection**: Input sanitization and output encoding
 - **Environment Variables**: Secure credential management via .env files
 - **Audit Logging**: Comprehensive activity tracking with IP addresses
-- **Rate Limiting**: API endpoint protection (configurable)
-- **Session Security**: HttpOnly, Secure, SameSite cookie attributes
+- **Rate Limiting**: 100 requests per hour per user on the external API
+- **Session Security**: HttpOnly and SameSite cookie attributes
 
 ## API Documentation
 
@@ -409,4 +409,4 @@ For questions, issues, or contributions:
 
 ---
 
-**Built by Qian (Angela) Su** | **Showcasing modern full-stack development with enterprise-grade security**
+**Built by Qian (Angela) Su** | **Showcasing modern full-stack development with hand-written 2FA and CSRF protection**
