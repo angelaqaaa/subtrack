@@ -370,9 +370,9 @@ class DashboardController {
     public function endSubscription() {
         header('Content-Type: application/json');
 
-        // Enable error reporting for debugging
+        // Report errors to the log file only, never into the JSON response
         error_reporting(E_ALL);
-        ini_set('display_errors', 1);
+        ini_set('display_errors', 0);
 
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -446,9 +446,9 @@ class DashboardController {
     public function reactivateSubscription() {
         header('Content-Type: application/json');
 
-        // Enable error reporting for debugging
+        // Report errors to the log file only, never into the JSON response
         error_reporting(E_ALL);
-        ini_set('display_errors', 1);
+        ini_set('display_errors', 0);
 
         // Check authentication
         if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {

@@ -479,7 +479,8 @@ class UserModel {
 
         // Check current time window and adjacent windows for clock drift
         for ($i = -$window; $i <= $window; $i++) {
-            if ($this->generateTOTP($secret, $time + $i) === str_pad($code, 6, '0', STR_PAD_LEFT)) {
+            // hash_equals keeps the comparison constant-time, like the CSRF check
+            if (hash_equals($this->generateTOTP($secret, $time + $i), str_pad($code, 6, '0', STR_PAD_LEFT))) {
                 return true;
             }
         }
