@@ -1,0 +1,108 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Show PHP and MySQL client versions
+        run: |
+          php -v
+          mysql --version
+
+      - name: Point the mysql client at the service
+        run: printf '[client]\nhost=127.0.0.1\nport=3306\nuser=root\npassword=root\n' > ~/.my.cnf
+
+      - name: Wait for MySQL
+        run: |
+          for attempt in $(seq 1 30); do
+            if mysqladmin ping --silent; then
+              exit 0
+            fi
+            echo "Waiting for MySQL (attempt $attempt)"
+            sleep 2
+          done
+          echo "MySQL did not come up"
+          exit 1
+
+      - name: Check the migration list in README.md
+        run: |
+          # The lines between "# Run migrations in order" and the end of that code block
+          sed -n '/^# Run migrations in order/,/^```/p' README.md | sed '1d;$d' > "$RUNNER_TEMP/block.txt"
+          if [ ! -s "$RUNNER_TEMP/block.txt" ]; then
+            echo "No migration list under '# Run migrations in order' in README.md"
+            exit 1
+          fi
+          # Each of them has to be exactly a migration command in the Quick Start's form
+          # (sed -n 'l 0' prints the bad lines with tabs, carriage returns and line ends visible)
+          if grep -vxE 'mysql -u root -p subtrack_db < database/migrations/[A-Za-z0-9_]+\.sql' "$RUNNER_TEMP/block.txt" | sed -n 'l 0'; then
+            echo "The lines above are not exactly: mysql -u root -p subtrack_db < database/migrations/<name>.sql (<name> uses only letters, digits and underscores)"
+            exit 1
+          fi
+          sed 's/.* < //' "$RUNNER_TEMP/block.txt" > "$RUNNER_TEMP/migrations.txt"
+          cat "$RUNNER_TEMP/migrations.txt"
+          diff - "$RUNNER_TEMP/migrations.txt" <<'EOF'
+          database/migrations/database_setup.sql
+          database/migrations/phase9_schema_fixed.sql
+          database/migrations/phase10_schema_fixed.sql
+          database/migrations/phase11_schema.sql
+          database/migrations/improvements_schema.sql
+          database/migrations/fix_missing_columns.sql
+          database/migrations/add_api_key_migration.sql
+          database/migrations/database_2fa_migration.sql
+          database/migrations/missing_tables_migration.sql
+          database/migrations/phase12_space_role_updates.sql
+          EOF
+
+      - name: Create the database and apply the migrations
+        run: |
+          # The Quick Start's CREATE DATABASE command, above the migration list
+          create_db=$(sed -n '1,/^# Run migrations in order/s/^mysql -u root -p -e "\(CREATE DATABASE subtrack_db [^"]*\)"$/\1/p' README.md)
+          if [ -z "$create_db" ]; then
+            echo 'No line of the form mysql -u root -p -e "CREATE DATABASE subtrack_db ..." above the migration list in README.md'
+            exit 1
+          fi
+          echo "$create_db"
+          mysql -e "$create_db"
+          while read -r file; do
+            echo "Applying $file"
+            mysql subtrack_db < "$file"
+          done < "$RUNNER_TEMP/migrations.txt"
+
+      - name: Write .env for the PHP scripts
+        run: printf 'DB_HOST=127.0.0.1\nDB_USER=root\nDB_PASS=root\nDB_NAME=subtrack_db\n' > .env
+
+      - name: Lint PHP files
+        run: find src api routes public index.php -name '*.php' -print0 | xargs -0 -n1 php -l
+
+      - name: RFC 6238 test vectors
+        run: php tests/totp_rfc6238_vectors.php
+
+      - name: InsightsModel smoke test
+        run: php tests/ci_smoke_insights.php

@@ -2,6 +2,7 @@
 
 > **A comprehensive subscription management platform featuring advanced security, collaborative workspaces, and modern full-stack architecture.**
 
+[![CI](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml/badge.svg)](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19.1.1-blue?logo=react)](https://reactjs.org/)
 [![PHP](https://img.shields.io/badge/PHP-8%2B-purple?logo=php)](https://php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange?logo=mysql)](https://mysql.com/)
@@ -131,6 +132,7 @@ cd frontend && npm install && npm start
 ### Project Structure
 ```
 subtrack/
+├── .github/workflows/ci.yml  # GitHub Actions CI workflow
 ├── api/                      # RESTful API endpoints for React frontend
 │   ├── auth.php                 # Authentication (login, register, 2FA)
 │   ├── dashboard.php            # Dashboard data and subscriptions
@@ -291,6 +293,9 @@ const subResponse = await fetch('/api/dashboard.php?action=add_subscription', {
 ```
 
 ## Testing
+
+### Continuous Integration
+`.github/workflows/ci.yml` runs on push and pull_request events. It starts a fresh MySQL 8.0 service and checks the Quick Start's migration list first: every line between `# Run migrations in order` and the end of that code block has to match the workflow's `mysql -u root -p subtrack_db < ...sql` pattern exactly, and the list has to match the copy kept in the workflow, in order. Then it creates the database with the Quick Start's `CREATE DATABASE` command, applies the files in that order from the project root, runs `php -l` over `src`, `api`, `routes`, `public` and `index.php`, and runs `tests/totp_rfc6238_vectors.php` and `tests/ci_smoke_insights.php`.
 
 ### PHP Backend Tests
 ```bash
