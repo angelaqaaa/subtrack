@@ -61,8 +61,7 @@ cp .env.example .env
 # Edit .env with your database credentials
 
 # Frontend configuration
-cd frontend
-cp .env.example .env.local
+cp frontend/.env.example frontend/.env.local
 # Adjust API URL if needed (default: http://localhost:8000)
 ```
 
@@ -90,7 +89,7 @@ mysql -u root -p subtrack_db < database/migrations/phase12_space_role_updates.sq
 # Backend (from project root)
 php -S localhost:8000
 
-# Frontend (in new terminal)
+# Frontend (in a new terminal, from the project root)
 cd frontend && npm install && npm start
 ```
 
