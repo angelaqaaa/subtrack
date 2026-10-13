@@ -80,6 +80,17 @@ jobs:
           database/migrations/phase12_space_role_updates.sql
           EOF
 
+      - name: Check that every migration file is in the README list
+        run: |
+          # fix_user_achievements_table.sql is the MariaDB-only patch the README leaves out on purpose
+          printf '%s\n' database/migrations/*.sql \
+            | grep -vx 'database/migrations/fix_user_achievements_table.sql' \
+            | LC_ALL=C sort > "$RUNNER_TEMP/on-disk.txt"
+          if ! LC_ALL=C sort "$RUNNER_TEMP/migrations.txt" | diff - "$RUNNER_TEMP/on-disk.txt"; then
+            echo "In the diff above, < is in the README list but not on disk or is listed twice (fix_user_achievements_table.sql does not count as on disk), > is on disk but not in the README list"
+            exit 1
+          fi
+
       - name: Create the database and apply the migrations
         run: |
           # The Quick Start's CREATE DATABASE command, above the migration list

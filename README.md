@@ -297,7 +297,7 @@ const subResponse = await fetch('/api/dashboard.php?action=add_subscription', {
 ## Testing
 
 ### Continuous Integration
-`.github/workflows/ci.yml` runs on push and pull_request events. It starts a fresh MySQL 8.0 service and checks the Quick Start's migration list first: every line between `# Run migrations in order` and the end of that code block has to match the workflow's `mysql -u root -p subtrack_db < ...sql` pattern exactly, and the list has to match the copy kept in the workflow, in order. Then it creates the database with the Quick Start's `CREATE DATABASE` command, applies the files in that order from the project root, runs `php -l` over `src`, `api`, `routes`, `public` and `index.php`, and runs `tests/totp_rfc6238_vectors.php` and `tests/ci_smoke_insights.php`.
+`.github/workflows/ci.yml` runs on push and pull_request events. It starts a fresh MySQL 8.0 service and checks the Quick Start's migration list first: every line between `# Run migrations in order` and the end of that code block has to match the workflow's `mysql -u root -p subtrack_db < ...sql` pattern exactly, and the list has to match the copy kept in the workflow, in order. Every `.sql` file in the migrations folder except `fix_user_achievements_table.sql` also has to be in that list. Then it creates the database with the Quick Start's `CREATE DATABASE` command, applies the files in that order from the project root, runs `php -l` over `src`, `api`, `routes`, `public` and `index.php`, and runs `tests/totp_rfc6238_vectors.php` and `tests/ci_smoke_insights.php`.
 
 ### PHP Backend Tests
 ```bash
