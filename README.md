@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml/badge.svg)](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19.1.1-blue?logo=react)](https://reactjs.org/)
-[![PHP](https://img.shields.io/badge/PHP-8%2B-purple?logo=php)](https://php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-purple?logo=php)](https://php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange?logo=mysql)](https://mysql.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?logo=bootstrap)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -115,7 +115,7 @@ cd frontend && npm install && npm start
 - **date-fns 4.1.0** for date formatting and manipulation
 
 **Backend**
-- **PHP 8+** with modern OOP patterns and MVC architecture
+- **PHP 8.1+** with modern OOP patterns and MVC architecture
 - **PDO** with prepared statements for secure database access
 - **Custom CSRF Handler** with timing attack protection
 - **Session Security** with HttpOnly and SameSite cookies
