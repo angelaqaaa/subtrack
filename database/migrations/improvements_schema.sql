@@ -1,5 +1,5 @@
 -- Improvements for SubTrack: Categories, Invitations, Subscription End Dates
--- Run this after all existing schema files
+-- Run this after phase11_schema.sql and before phase12_space_role_updates.sql (see the README for the full order)
 
 -- 1. Create custom categories table
 CREATE TABLE IF NOT EXISTS custom_categories (
@@ -70,8 +70,7 @@ ADD COLUMN alert_threshold DECIMAL(3,2) DEFAULT 0.80 COMMENT 'Alert when spendin
 ADD COLUMN alert_sent BOOLEAN DEFAULT FALSE,
 ADD INDEX idx_alert_threshold (alert_threshold);
 
--- 7. Rename user_achievements to make the concept clearer
-RENAME TABLE user_achievements TO user_milestones;
+-- 7. Rename of user_achievements dropped: the app still reads and writes user_achievements
 
 -- 8. Update insights table to track which user owns each insight properly
 ALTER TABLE insights

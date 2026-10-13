@@ -78,16 +78,6 @@ try {
     $insightsModel = new InsightsModel($pdo);
 
     switch ($action) {
-        case 'debug_session':
-            // Debug endpoint to check session data
-            sendResponse('success', 'Session data retrieved', [
-                'user_id' => $user_id,
-                'session_id' => session_id(),
-                'username' => $_SESSION['username'] ?? 'N/A',
-                'all_session' => $_SESSION
-            ]);
-            break;
-
         case 'get_subscriptions':
             // Get all subscriptions including those from spaces the user is a member of
             $subscriptions = $subscriptionModel->getAllSubscriptionsWithSpaces($user_id);

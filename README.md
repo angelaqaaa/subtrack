@@ -2,8 +2,9 @@
 
 > **A comprehensive subscription management platform featuring advanced security, collaborative workspaces, and modern full-stack architecture.**
 
+[![CI](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml/badge.svg)](https://github.com/angelaqaaa/subtrack/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19.1.1-blue?logo=react)](https://reactjs.org/)
-[![PHP](https://img.shields.io/badge/PHP-8%2B-purple?logo=php)](https://php.net/)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-purple?logo=php)](https://php.net/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0%2B-orange?logo=mysql)](https://mysql.com/)
 [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-purple?logo=bootstrap)](https://getbootstrap.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -60,8 +61,7 @@ cp .env.example .env
 # Edit .env with your database credentials
 
 # Frontend configuration
-cd frontend
-cp .env.example .env.local
+cp frontend/.env.example frontend/.env.local
 # Adjust API URL if needed (default: http://localhost:8000)
 ```
 
@@ -71,10 +71,10 @@ mysql -u root -p -e "CREATE DATABASE subtrack_db CHARACTER SET utf8mb4 COLLATE u
 
 # Run migrations in order
 mysql -u root -p subtrack_db < database/migrations/database_setup.sql
-mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
 mysql -u root -p subtrack_db < database/migrations/phase9_schema_fixed.sql
 mysql -u root -p subtrack_db < database/migrations/phase10_schema_fixed.sql
 mysql -u root -p subtrack_db < database/migrations/phase11_schema.sql
+mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
 mysql -u root -p subtrack_db < database/migrations/fix_missing_columns.sql
 mysql -u root -p subtrack_db < database/migrations/add_api_key_migration.sql
 mysql -u root -p subtrack_db < database/migrations/database_2fa_migration.sql
@@ -82,12 +82,14 @@ mysql -u root -p subtrack_db < database/migrations/missing_tables_migration.sql
 mysql -u root -p subtrack_db < database/migrations/phase12_space_role_updates.sql
 ```
 
+`fix_user_achievements_table.sql` is left out of this list on purpose: `phase11_schema.sql` already creates the columns it adds, and its `ADD COLUMN IF NOT EXISTS` is MariaDB syntax that MySQL 8 rejects.
+
 4. **Start the application**
 ```bash
 # Backend (from project root)
 php -S localhost:8000
 
-# Frontend (in new terminal)
+# Frontend (in a new terminal, from the project root)
 cd frontend && npm install && npm start
 ```
 
@@ -113,7 +115,7 @@ cd frontend && npm install && npm start
 - **date-fns 4.1.0** for date formatting and manipulation
 
 **Backend**
-- **PHP 8+** with modern OOP patterns and MVC architecture
+- **PHP 8.1+** with modern OOP patterns and MVC architecture
 - **PDO** with prepared statements for secure database access
 - **Custom CSRF Handler** with timing attack protection
 - **Session Security** with HttpOnly and SameSite cookies
@@ -129,6 +131,7 @@ cd frontend && npm install && npm start
 ### Project Structure
 ```
 subtrack/
+├── .github/workflows/ci.yml  # GitHub Actions CI workflow
 ├── api/                      # RESTful API endpoints for React frontend
 │   ├── auth.php                 # Authentication (login, register, 2FA)
 │   ├── dashboard.php            # Dashboard data and subscriptions
@@ -193,6 +196,8 @@ subtrack/
 │   ├── test_audit.php           # Audit logging tests
 │   ├── test_phase11.php         # Insights feature tests
 │   ├── test_end_subscription.php
+│   ├── totp_rfc6238_vectors.php # RFC 6238 vectors for the TOTP code
+│   ├── ci_smoke_insights.php    # InsightsModel smoke test run by CI
 │   ├── debug_subscription.php
 │   └── debug_insights.php
 ├── logs/                     # Application logs (gitignored)
@@ -210,6 +215,7 @@ subtrack/
 - **Secure Password Handling**: bcrypt hashing with salt
 - **Session Management**: Login state tracked in PHP sessions
 - **CSRF Protection**: Token-based with timing attack prevention
+- **TOTP and CSRF Comparison**: TOTP codes (`src/Models/UserModel.php`) and CSRF tokens (`src/Config/csrf.php`) are compared with `hash_equals`
 - **Role-Based Access**: Granular permissions for shared spaces (admin, editor, viewer)
 
 ### Data Protection
@@ -290,6 +296,9 @@ const subResponse = await fetch('/api/dashboard.php?action=add_subscription', {
 
 ## Testing
 
+### Continuous Integration
+`.github/workflows/ci.yml` runs on push and pull_request events. It starts a fresh MySQL 8.0 service and checks the Quick Start's migration list first: every line between `# Run migrations in order` and the end of that code block has to match the workflow's `mysql -u root -p subtrack_db < ...sql` pattern exactly, and the list has to match the copy kept in the workflow, in order. Every `.sql` file in the migrations folder except `fix_user_achievements_table.sql` also has to be in that list. Then it creates the database with the Quick Start's `CREATE DATABASE` command, applies the files in that order from the project root, runs `php -l` over `src`, `api`, `routes`, `public` and `index.php`, and runs `tests/totp_rfc6238_vectors.php` and `tests/ci_smoke_insights.php`. CI uses the PHP preinstalled on the `ubuntu-24.04` runner, which the log shows as PHP 8.3.6.
+
 ### PHP Backend Tests
 ```bash
 # API endpoint tests
@@ -303,6 +312,12 @@ php tests/test_phase11.php
 
 # Subscription lifecycle tests
 php tests/test_end_subscription.php
+
+# TOTP code checked against the SHA-1 vectors of RFC 6238 Appendix B (no database needed)
+php tests/totp_rfc6238_vectors.php
+
+# InsightsModel calls against a freshly migrated database (the rows it writes are rolled back)
+php tests/ci_smoke_insights.php
 
 # Debug utilities
 php tests/debug_subscription.php
