@@ -238,7 +238,7 @@ mysql -u root -p subtrack_db < database/migrations/phase9_schema_fixed.sql
 
 To add a new test file:
 
-1. **Create File**: `tests/test_[feature].php`
+1. **Create File**: `tests/test_[feature].php`, or a name that says what the script checks, like `tests/totp_rfc6238_vectors.php`
 
 2. **Include Dependencies**:
 ```php
