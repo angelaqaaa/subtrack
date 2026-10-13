@@ -197,6 +197,8 @@ subtrack/
 │   ├── test_audit.php           # Audit logging tests
 │   ├── test_phase11.php         # Insights feature tests
 │   ├── test_end_subscription.php
+│   ├── totp_rfc6238_vectors.php # RFC 6238 vectors for the TOTP code
+│   ├── ci_smoke_insights.php    # InsightsModel smoke test run by CI
 │   ├── debug_subscription.php
 │   └── debug_insights.php
 ├── logs/                     # Application logs (gitignored)
@@ -311,6 +313,12 @@ php tests/test_phase11.php
 
 # Subscription lifecycle tests
 php tests/test_end_subscription.php
+
+# TOTP code checked against the SHA-1 vectors of RFC 6238 Appendix B (no database needed)
+php tests/totp_rfc6238_vectors.php
+
+# InsightsModel calls against a freshly migrated database (the rows it writes are rolled back)
+php tests/ci_smoke_insights.php
 
 # Debug utilities
 php tests/debug_subscription.php

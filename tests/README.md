@@ -85,6 +85,38 @@ php tests/test_end_subscription.php
 
 ---
 
+### `totp_rfc6238_vectors.php`
+**Purpose**: TOTP check against the SHA-1 test vectors of RFC 6238
+
+**What it tests**:
+- `generateTOTP()` in `UserModel.php` against the HMAC-SHA1 rows of RFC 6238 Appendix B
+- The 6-digit result against the last six digits of each 8-digit RFC value
+
+**Usage**:
+```bash
+php tests/totp_rfc6238_vectors.php
+```
+
+**Note**: Needs no database. Exits with code 1 if any vector does not match. CI runs it after the migration and lint steps.
+
+---
+
+### `ci_smoke_insights.php`
+**Purpose**: `InsightsModel` smoke test against a freshly migrated database
+
+**What it tests**:
+- `awardAchievement()` and `getUserAchievements()` on `user_achievements`, including a repeated award
+- `getUserInsights()` and `getUserSpendingGoals()`, and `generateInsights()` with and without an active subscription
+
+**Usage**:
+```bash
+php tests/ci_smoke_insights.php
+```
+
+**Note**: Reads `.env` like the other tests and rolls back the rows it writes. Exits with code 1 on any failure. CI runs it after applying the migrations.
+
+---
+
 ### `debug_subscription.php`
 **Purpose**: Subscription creation and validation debugging
 
@@ -146,13 +178,15 @@ php tests/debug_insights.php
 php tests/test_api.php
 php tests/test_audit.php
 php tests/test_phase11.php
+php tests/totp_rfc6238_vectors.php
+php tests/ci_smoke_insights.php
 ```
 
 ## Test Requirements
 
-All test files require:
+All test files except `totp_rfc6238_vectors.php` require:
 1. **Database Connection**: MySQL running with `subtrack_db` database
-2. **Migrations Applied**: All schema migrations must be run
+2. **Migrations Applied**: The migrations listed in the main README's Quick Start, in that order
 3. **Configuration**: `.env` file properly configured
 4. **PHP Session**: For tests requiring authentication
 
