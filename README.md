@@ -214,6 +214,7 @@ subtrack/
 - **Secure Password Handling**: bcrypt hashing with salt
 - **Session Management**: Login state tracked in PHP sessions
 - **CSRF Protection**: Token-based with timing attack prevention
+- **TOTP and CSRF Comparison**: TOTP codes (`src/Models/UserModel.php`) and CSRF tokens (`src/Config/csrf.php`) are compared with `hash_equals`
 - **Role-Based Access**: Granular permissions for shared spaces (admin, editor, viewer)
 
 ### Data Protection
