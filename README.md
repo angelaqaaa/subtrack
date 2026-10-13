@@ -71,16 +71,18 @@ mysql -u root -p -e "CREATE DATABASE subtrack_db CHARACTER SET utf8mb4 COLLATE u
 
 # Run migrations in order
 mysql -u root -p subtrack_db < database/migrations/database_setup.sql
-mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
 mysql -u root -p subtrack_db < database/migrations/phase9_schema_fixed.sql
 mysql -u root -p subtrack_db < database/migrations/phase10_schema_fixed.sql
 mysql -u root -p subtrack_db < database/migrations/phase11_schema.sql
+mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
 mysql -u root -p subtrack_db < database/migrations/fix_missing_columns.sql
 mysql -u root -p subtrack_db < database/migrations/add_api_key_migration.sql
 mysql -u root -p subtrack_db < database/migrations/database_2fa_migration.sql
 mysql -u root -p subtrack_db < database/migrations/missing_tables_migration.sql
 mysql -u root -p subtrack_db < database/migrations/phase12_space_role_updates.sql
 ```
+
+`fix_user_achievements_table.sql` is left out of this list on purpose: `phase11_schema.sql` already creates the columns it adds, and its `ADD COLUMN IF NOT EXISTS` is MariaDB syntax that MySQL 8 rejects.
 
 4. **Start the application**
 ```bash

@@ -191,8 +191,8 @@ DB_PASS=your_password
 **Solution**: Run all migrations:
 ```bash
 mysql -u root -p subtrack_db < database/migrations/database_setup.sql
-mysql -u root -p subtrack_db < database/migrations/improvements_schema.sql
-# ... (run all migrations in order)
+mysql -u root -p subtrack_db < database/migrations/phase9_schema_fixed.sql
+# ... (run the rest in the order the main README lists)
 ```
 
 ### "No users found"
